@@ -1,21 +1,29 @@
 """
-FLIR Mosquito Motion Detection — Tracking + Flight Path Visualization
-=====================================================================
-Preview shows MOTION video (not raw) with:
+FLIR Mosquito Motion Detection — Tracking + Flight Path Visualization  v2
+=========================================================================
+What's new in v2:
+  - Output files stored in ~/Downloads/QQ
+  - Per-file output selection: raw video, motion video, CSV, trajectory map
+  - Min / max shown for every setting when editing
+  - Focus Mode: live per-camera view with sharpness indicator, no files saved
+  - Desktop launcher: FlirTracker.app + flir_launcher.command (drag to Desktop)
+
+Preview shows MOTION video with:
   - Green bounding boxes around detected bugs
   - Colored trail showing each bug's flight path
   - Trajectory map window showing all paths over time
 
-Outputs per recording session:
+Outputs per recording session (each individually toggleable):
   camera_left_TIMESTAMP_raw.mp4      — full raw IR video
   camera_left_TIMESTAMP_motion.mp4   — motion video with trails
   camera_left_TIMESTAMP_tracks.csv   — per-frame bug positions
   camera_left_TIMESTAMP_trajmap.png  — final trajectory map image
 
 Controls:
-  Main menu : R = Record   S = Save settings   Q = Quit
-  Recording : S = Stop     E = Exposure   G = Gain
-              T = Threshold   L = Learning rate
+  Main menu  : R = Record   F = Focus Mode   S = Save settings   Q = Quit
+  Recording  : S = Stop     E = Exposure     G = Gain
+               T = Threshold  L = Learning rate
+  Focus Mode : E = Exposure   G = Gain   Q = Quit focus mode
 
 Requirements:
     pip install opencv-python "numpy<2" scipy
@@ -23,10 +31,10 @@ Requirements:
 """
 
 import os, json, threading, time, sys, select, csv
-from collections import defaultdict, deque
+from collections import deque
 from datetime import datetime
 
-# ── NumPy / dependency guards ─────────────────────────────────────────────────
+# ── NumPy / dependency guards ──────────────────────────────────────────────────
 try:
     import numpy as np
     if int(np.__version__.split(".")[0]) >= 2:
@@ -46,18 +54,17 @@ try:
 except ImportError:
     print("ERROR: OpenCV not found.  pip install opencv-python"); sys.exit(1)
 
-# scipy for Hungarian algorithm (optimal blob-to-track matching)
 try:
     from scipy.optimize import linear_sum_assignment
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 #  DEFAULT SETTINGS
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 DEFAULTS = {
-    "save_folder":          os.path.expanduser("~/Desktop/camera_recordings"),
+    "save_folder":          os.path.expanduser("~/Downloads/QQ"),
     "camera_0_name":        "camera_left",
     "camera_1_name":        "camera_right",
     "frame_rate":           30.0,
@@ -74,13 +81,37 @@ DEFAULTS = {
     "min_bug_area":         30,
     "blob_dilation":        3,
     # Tracking
-    "trail_length":         60,    # frames of trail to draw (2s at 30fps)
-    "max_match_distance":   80,    # max pixels to match a blob to an existing track
-    "track_timeout":        10,    # frames before a lost track is retired
+    "trail_length":         60,
+    "max_match_distance":   80,
+    "track_timeout":        10,
+    # Output file selection
+    "save_raw":             True,
+    "save_motion":          True,
+    "save_csv":             True,
+    "save_traj":            True,
 }
 SETTINGS_FILE = "camera_settings.json"
 
-# Trail colours — up to 12 bugs tracked simultaneously, each gets its own colour
+# ── Valid ranges shown when editing each setting ───────────────────────────────
+# Format: key → (min, max, unit_label)
+SETTING_RANGES = {
+    "frame_rate":           (1,      200,    "fps"),
+    "exposure_time":        (100,    999999, "µs"),
+    "gain_db":              (0,      47,     "dB"),
+    "image_width":          (1,      1440,   "px"),
+    "image_height":         (1,      1080,   "px"),
+    "bg_learning_rate":     (0.001,  1.0,    ""),
+    "motion_threshold":     (0,      255,    ""),
+    "min_bug_area":         (1,      9999,   "px²"),
+    "blob_dilation":        (0,      10,     "px"),
+    "trail_length":         (1,      300,    "frames"),
+    "max_match_distance":   (1,      500,    "px"),
+    "track_timeout":        (1,      300,    "frames"),
+    "duration_seconds":     (0,      86400,  "s  (0 = manual stop)"),
+    "preview_scale":        (0.1,    1.0,    ""),
+}
+
+# Trail colours — up to 12 bugs tracked simultaneously
 TRAIL_COLORS = [
     (0,   255, 0),    # green
     (0,   200, 255),  # cyan
@@ -96,14 +127,14 @@ TRAIL_COLORS = [
     (255, 200, 50),   # gold
 ]
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 #  SETTINGS  LOAD / SAVE
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 def settings_path(cfg):
     return os.path.join(cfg["save_folder"], SETTINGS_FILE)
 
 def load_settings():
-    cfg = dict(DEFAULTS)
+    cfg  = dict(DEFAULTS)
     path = os.path.join(DEFAULTS["save_folder"], SETTINGS_FILE)
     if os.path.exists(path):
         try:
@@ -123,16 +154,16 @@ def save_settings(cfg):
     except Exception as e:
         print(f"  Could not save settings: {e}")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 #  BUG TRACKER  — assigns persistent IDs across frames
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 class BugTracker:
     def __init__(self, cfg):
-        self.cfg         = cfg
-        self.next_id     = 0
-        self.tracks      = {}   # id → {centroid, trail, age, missing}
-        self.color_map   = {}   # id → BGR colour
-        self.color_pool  = list(range(len(TRAIL_COLORS)))
+        self.cfg        = cfg
+        self.next_id    = 0
+        self.tracks     = {}
+        self.color_map  = {}
+        self.color_pool = list(range(len(TRAIL_COLORS)))
 
     def _assign_color(self, track_id):
         if self.color_pool:
@@ -154,12 +185,11 @@ class BugTracker:
         detections: list of (cx, cy, area, x, y, w, h)
         Returns list of (track_id, cx, cy, area, x, y, w, h, color)
         """
-        max_dist    = self.cfg["max_match_distance"]
-        trail_len   = self.cfg["trail_length"]
-        timeout     = self.cfg["track_timeout"]
-        active_ids  = list(self.tracks.keys())
+        max_dist   = self.cfg["max_match_distance"]
+        trail_len  = self.cfg["trail_length"]
+        timeout    = self.cfg["track_timeout"]
+        active_ids = list(self.tracks.keys())
 
-        # ── Match detections to existing tracks ───────────────────────────
         if active_ids and detections:
             cost = np.zeros((len(active_ids), len(detections)))
             for i, tid in enumerate(active_ids):
@@ -170,14 +200,12 @@ class BugTracker:
             if HAS_SCIPY:
                 row_ind, col_ind = linear_sum_assignment(cost)
             else:
-                # greedy fallback
                 row_ind, col_ind = [], []
                 used_cols = set()
                 for i in range(len(active_ids)):
-                    best_j   = min((j for j in range(len(detections))
-                                    if j not in used_cols),
-                                   key=lambda j: cost[i, j],
-                                   default=None)
+                    best_j = min((j for j in range(len(detections))
+                                  if j not in used_cols),
+                                 key=lambda j: cost[i, j], default=None)
                     if best_j is not None:
                         row_ind.append(i); col_ind.append(best_j)
                         used_cols.add(best_j)
@@ -197,35 +225,28 @@ class BugTracker:
                     matched_track_idx.add(i)
                     matched_detect_idx.add(j)
 
-            # increment missing counter for unmatched tracks
             for i, tid in enumerate(active_ids):
                 if i not in matched_track_idx:
                     self.tracks[tid]["missing"] += 1
 
-            # new tracks for unmatched detections
             for j, det in enumerate(detections):
                 if j not in matched_detect_idx:
                     self._new_track(det)
         else:
-            # no existing tracks — create new for each detection
             for det in detections:
                 self._new_track(det)
-            # age out all existing
             for tid in active_ids:
                 self.tracks[tid]["missing"] += 1
 
-        # ── Remove timed-out tracks ────────────────────────────────────────
         for tid in list(self.tracks.keys()):
             if self.tracks[tid]["missing"] > timeout:
                 self._release_color(tid)
                 del self.tracks[tid]
 
-        # ── Build result list ──────────────────────────────────────────────
         results = []
         for tid, tr in self.tracks.items():
             if tr["missing"] == 0:
                 cx, cy = tr["centroid"]
-                # find matching detection
                 for det in detections:
                     dcx, dcy, area, x, y, w, h = det
                     if abs(dcx - cx) < 2 and abs(dcy - cy) < 2:
@@ -239,46 +260,34 @@ class BugTracker:
         tid   = self.next_id
         self.next_id += 1
         trail = deque([(int(cx), int(cy))], maxlen=self.cfg["trail_length"])
-        self.tracks[tid] = {
-            "centroid": (cx, cy),
-            "trail":    trail,
-            "missing":  0,
-        }
+        self.tracks[tid] = {"centroid": (cx, cy), "trail": trail, "missing": 0}
         self._assign_color(tid)
 
     def get_all_trails(self):
-        """Returns {track_id: (trail_deque, color)} for drawing."""
-        return {
-            tid: (tr["trail"], self.color_map.get(tid, (0, 255, 0)))
-            for tid, tr in self.tracks.items()
-        }
+        return {tid: (tr["trail"], self.color_map.get(tid, (0, 255, 0)))
+                for tid, tr in self.tracks.items()}
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 #  TRAJECTORY MAP  — accumulates all paths for the full session
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 class TrajectoryMap:
     def __init__(self, width, height):
-        self.w        = width
-        self.h        = height
-        self.canvas   = np.zeros((height, width, 3), dtype=np.uint8)
-        self.prev_pts = {}   # track_id → last point drawn
+        self.w      = width
+        self.h      = height
+        self.canvas = np.zeros((height, width, 3), dtype=np.uint8)
 
     def update(self, tracked_bugs, tracker):
         trails = tracker.get_all_trails()
         for tid, (trail, color) in trails.items():
             pts = list(trail)
             if len(pts) >= 2:
-                # draw only new segment (last two points)
-                p1 = pts[-2]
-                p2 = pts[-1]
-                cv2.line(self.canvas, p1, p2, color, 1, cv2.LINE_AA)
+                cv2.line(self.canvas, pts[-2], pts[-1], color, 1, cv2.LINE_AA)
 
     def get_display(self, scale=0.35):
         small = cv2.resize(self.canvas, (int(self.w * scale), int(self.h * scale)))
-        # dim background so paths stand out
-        bg = np.zeros_like(small)
+        bg    = np.zeros_like(small)
         bg[:] = (15, 15, 15)
-        mask = np.any(small > 0, axis=2)
+        mask  = np.any(small > 0, axis=2)
         bg[mask] = small[mask]
         cv2.putText(bg, "FLIGHT PATHS", (8, 18),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1)
@@ -288,16 +297,15 @@ class TrajectoryMap:
         cv2.imwrite(path, self.canvas)
         print(f"    Trajectory map → {path}")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 #  BACKGROUND SUBTRACTOR + DETECTION
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 def make_bg_subtractor():
     return cv2.createBackgroundSubtractorMOG2(
         history=200, varThreshold=16, detectShadows=False)
 
 def detect_bugs(frame, bg_subtractor, cfg):
-    """Returns (fg_mask, detections) where detections = [(cx,cy,area,x,y,w,h)]"""
-    fg = bg_subtractor.apply(frame, learningRate=float(cfg["bg_learning_rate"]))
+    fg      = bg_subtractor.apply(frame, learningRate=float(cfg["bg_learning_rate"]))
     _, thresh = cv2.threshold(fg, cfg["motion_threshold"], 255, cv2.THRESH_BINARY)
     kernel  = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
@@ -306,23 +314,17 @@ def detect_bugs(frame, bg_subtractor, cfg):
             cv2.MORPH_ELLIPSE,
             (cfg["blob_dilation"]*2+1, cfg["blob_dilation"]*2+1))
         cleaned = cv2.dilate(cleaned, dk, iterations=1)
-
     contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     detections  = []
     for cnt in contours:
         area = cv2.contourArea(cnt)
         if area >= cfg["min_bug_area"]:
             x, y, w, h = cv2.boundingRect(cnt)
-            cx = x + w / 2
-            cy = y + h / 2
-            detections.append((cx, cy, area, x, y, w, h))
+            detections.append((x + w/2, y + h/2, area, x, y, w, h))
     return cleaned, detections
 
 def render_motion_frame(mono, tracked_bugs, tracker):
-    """Draw bounding boxes and trails onto a BGR frame."""
-    out = cv2.cvtColor(mono, cv2.COLOR_GRAY2BGR)
-
-    # Draw trails for all active tracks
+    out    = cv2.cvtColor(mono, cv2.COLOR_GRAY2BGR)
     trails = tracker.get_all_trails()
     for tid, (trail, color) in trails.items():
         pts = list(trail)
@@ -330,28 +332,27 @@ def render_motion_frame(mono, tracked_bugs, tracker):
             alpha = k / len(pts)
             faded = tuple(int(c * alpha) for c in color)
             cv2.line(out, pts[k-1], pts[k], faded, 1, cv2.LINE_AA)
-
-    # Draw bounding boxes for current detections
     for tid, cx, cy, area, x, y, w, h, color in tracked_bugs:
         cv2.rectangle(out, (x, y), (x+w, y+h), color, 1)
         cv2.putText(out, f"#{tid} {int(area)}px",
                     (x, y-4), cv2.FONT_HERSHEY_SIMPLEX, 0.35, color, 1)
-
     return out
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  MENU
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+#  MENU HELPERS
+# ──────────────────────────────────────────────────────────────────────────────
 def clear():
     os.system("clear")
+
+def _on(flag):
+    return "ON " if flag else "OFF"
 
 def print_main_menu(cfg, num_cams):
     clear()
     dur    = f"{int(cfg['duration_seconds'])}s" if cfg["duration_seconds"] > 0 else "until S pressed"
-    prev   = "ON" if cfg["show_preview"] else "OFF"
     folder = cfg["save_folder"].replace(os.path.expanduser("~"), "~")
     print("╔══════════════════════════════════════════════════════╗")
-    print("║   FLIR Mosquito Tracker — Motion + Flight Paths      ║")
+    print("║   FLIR Mosquito Tracker — Motion + Flight Paths  v2  ║")
     print("╠══════════════════════════════════════════════════════╣")
     print(f"║  Cameras detected : {num_cams:<33}║")
     print("╠════════════════════ File / Camera ═══════════════════╣")
@@ -373,11 +374,15 @@ def print_main_menu(cfg, num_cams):
     print(f"║  [14] Track timeout   : {str(cfg['track_timeout']) + ' frames':<30}║")
     print("╠════════════════════ Display ══════════════════════════╣")
     print(f"║  [15] Duration        : {dur:<30}║")
-    print(f"║  [16] Preview window  : {prev:<30}║")
+    print(f"║  [16] Preview window  : {_on(cfg['show_preview']):<30}║")
     print(f"║  [17] Preview scale   : {cfg['preview_scale']:<30}║")
+    print("╠════════════════════ Output Files ════════════════════╣")
+    print(f"║  [18] Save raw video  : {_on(cfg['save_raw']):<30}║")
+    print(f"║  [19] Save motion video: {_on(cfg['save_motion']):<29}║")
+    print(f"║  [20] Save CSV tracks : {_on(cfg['save_csv']):<30}║")
+    print(f"║  [21] Save traj map   : {_on(cfg['save_traj']):<30}║")
     print("╠══════════════════════════════════════════════════════╣")
-    print("║  [S]  Save settings    [R]  Start Recording          ║")
-    print("║  [Q]  Quit                                           ║")
+    print("║  [S] Save settings  [R] Record  [F] Focus  [Q] Quit  ║")
     print("╚══════════════════════════════════════════════════════╝")
 
 def print_recording_menu(cfg, elapsed, bug_counts):
@@ -390,17 +395,38 @@ def print_recording_menu(cfg, elapsed, bug_counts):
     print(f"║  Elapsed          : {elapsed:.1f}s{'':<27}║")
     print(f"║  Bugs in frame    : {counts:<33}║")
     print("╠════════════════ Adjust While Recording ══════════════╣")
-    print(f"║  [E]  Exposure        : {str(cfg['exposure_time']) + ' µs':<30}║")
-    print(f"║  [G]  Gain            : {str(cfg['gain_db']) + ' dB':<30}║")
-    print(f"║  [T]  Motion threshold: {cfg['motion_threshold']:<30}║")
-    print(f"║  [L]  BG learning rate: {cfg['bg_learning_rate']:<30}║")
+    lo, hi, _ = SETTING_RANGES["exposure_time"]
+    print(f"║  [E]  Exposure        : {str(cfg['exposure_time']) + f' µs  ({lo}–{hi})':<30}║")
+    lo, hi, _ = SETTING_RANGES["gain_db"]
+    print(f"║  [G]  Gain            : {str(cfg['gain_db']) + f' dB  ({lo}–{hi})':<30}║")
+    lo, hi, _ = SETTING_RANGES["motion_threshold"]
+    print(f"║  [T]  Motion threshold: {str(cfg['motion_threshold']) + f'  ({lo}–{hi})':<30}║")
+    lo, hi, _ = SETTING_RANGES["bg_learning_rate"]
+    print(f"║  [L]  BG learning rate: {str(cfg['bg_learning_rate']) + f'  ({lo}–{hi})':<30}║")
     print("╠══════════════════════════════════════════════════════╣")
     print("║  [S]  Stop & Save recording                          ║")
     print("╚══════════════════════════════════════════════════════╝")
 
-# ─────────────────────────────────────────────────────────────────────────────
+def print_focus_menu(cfg):
+    clear()
+    lo_e, hi_e, _ = SETTING_RANGES["exposure_time"]
+    lo_g, hi_g, _ = SETTING_RANGES["gain_db"]
+    print("╔══════════════════════════════════════════════════════╗")
+    print("║              🔭  FOCUS MODE                          ║")
+    print("╠══════════════════════════════════════════════════════╣")
+    print("║  Live preview only — NO FILES SAVED                  ║")
+    print("║  Sharpness score shown on each camera window.        ║")
+    print("║  Higher sharpness = better focus.                    ║")
+    print("╠══════════════════════════════════════════════════════╣")
+    print(f"║  [E]  Exposure : {str(cfg['exposure_time']) + f' µs  ({lo_e}–{hi_e})':<35}║")
+    print(f"║  [G]  Gain     : {str(cfg['gain_db']) + f' dB  ({lo_g}–{hi_g})':<35}║")
+    print("╠══════════════════════════════════════════════════════╣")
+    print("║  [Q]  Quit Focus Mode                                ║")
+    print("╚══════════════════════════════════════════════════════╝")
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  CAMERA HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 def configure_camera(cam, cfg, name):
     print(f"    Configuring {name}...")
     cam.AcquisitionFrameRateEnable.SetValue(True)
@@ -441,12 +467,12 @@ def apply_gain(cameras, value):
         try: cam.Gain.SetValue(float(value))
         except Exception as e: print(f"  Gain error: {e}")
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  CAPTURE THREAD
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+#  CAPTURE THREAD  (recording)
+# ──────────────────────────────────────────────────────────────────────────────
 def capture_loop(cam, raw_writer, motion_writer, csv_writer, csv_lock,
                  cam_idx, name, stop_event, preview_queue,
-                 bug_count_ref, cfg_ref, traj_map, tracker):
+                 bug_count_ref, cfg_ref, traj_map, tracker, save_opts):
     bg_sub      = make_bg_subtractor()
     frame_count = 0
     t0          = time.time()
@@ -464,43 +490,39 @@ def capture_loop(cam, raw_writer, motion_writer, csv_writer, csv_lock,
             timestamp   = time.time() - t0
             cfg         = cfg_ref[0]
 
-            # RAW video
-            raw_writer.write(cv2.cvtColor(mono, cv2.COLOR_GRAY2BGR))
+            # Raw video
+            if save_opts["save_raw"] and raw_writer is not None:
+                raw_writer.write(cv2.cvtColor(mono, cv2.COLOR_GRAY2BGR))
 
-            # Detect bugs
+            # Detect + track
             _, detections = detect_bugs(mono, bg_sub, cfg)
-
-            # Track bugs — assign persistent IDs
-            tracked = tracker.update(detections)
+            tracked       = tracker.update(detections)
             bug_count_ref[0] = len(tracked)
 
-            # Update trajectory map
-            traj_map.update(tracked, tracker)
+            # Trajectory map
+            if save_opts["save_traj"]:
+                traj_map.update(tracked, tracker)
 
-            # Render motion frame with trails + boxes
-            motion_frame = render_motion_frame(mono, tracked, tracker)
-            motion_writer.write(motion_frame)
+            # Motion frame — render if saving or previewing
+            need_motion = (save_opts["save_motion"] and motion_writer is not None) or \
+                          (cfg["show_preview"] and preview_queue is not None)
+            if need_motion:
+                motion_frame = render_motion_frame(mono, tracked, tracker)
+                if save_opts["save_motion"] and motion_writer is not None:
+                    motion_writer.write(motion_frame)
+                if cfg["show_preview"] and preview_queue is not None:
+                    preview_queue.append(motion_frame.copy())
+                    if len(preview_queue) > 2:
+                        preview_queue.pop(0)
 
-            # Log to CSV
-            if tracked:
+            # CSV
+            if save_opts["save_csv"] and csv_writer is not None and tracked:
                 with csv_lock:
                     for tid, cx, cy, area, x, y, w, h, color in tracked:
                         csv_writer.writerow([
-                            f"{timestamp:.4f}",
-                            frame_count,
-                            cam_idx,
-                            tid,
-                            f"{cx:.1f}",
-                            f"{cy:.1f}",
-                            int(area),
-                            x, y, w, h
+                            f"{timestamp:.4f}", frame_count, cam_idx, tid,
+                            f"{cx:.1f}", f"{cy:.1f}", int(area), x, y, w, h
                         ])
-
-            # Push to preview
-            if preview_queue is not None:
-                preview_queue.append(motion_frame.copy())
-                if len(preview_queue) > 2:
-                    preview_queue.pop(0)
 
         except PySpin.SpinnakerException as e:
             if not stop_event.is_set():
@@ -515,12 +537,157 @@ def capture_loop(cam, raw_writer, motion_writer, csv_writer, csv_lock,
     fps     = frame_count / elapsed if elapsed > 0 else 0
     print(f"  [{name}]  {frame_count} frames  {elapsed:.1f}s  ({fps:.1f} fps)")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+#  FOCUS THREAD  (live view only, no files)
+# ──────────────────────────────────────────────────────────────────────────────
+def focus_loop(cam, name, stop_event, preview_queue, cfg_ref):
+    while not stop_event.is_set():
+        try:
+            img = cam.GetNextImage(1000)
+            if img.IsIncomplete():
+                img.Release()
+                continue
+
+            mono = img.GetNDArray()
+            img.Release()
+            cfg  = cfg_ref[0]
+
+            bgr = cv2.cvtColor(mono, cv2.COLOR_GRAY2BGR)
+            h, w = bgr.shape[:2]
+
+            # Sharpness score via Laplacian variance
+            sharpness = cv2.Laplacian(mono, cv2.CV_64F).var()
+
+            # Crosshair at centre
+            cx, cy = w // 2, h // 2
+            cv2.line(bgr, (cx - 30, cy), (cx + 30, cy), (0, 220, 255), 1)
+            cv2.line(bgr, (cx, cy - 30), (cx, cy + 30), (0, 220, 255), 1)
+            cv2.circle(bgr, (cx, cy), 40, (0, 220, 255), 1)
+
+            # Sharpness bar (top-left)
+            bar_w = min(int(sharpness / 500 * (w - 20)), w - 20)
+            bar_w = max(bar_w, 0)
+            color = (0, 255, 0) if sharpness > 200 else (0, 140, 255) if sharpness > 80 else (0, 60, 200)
+            cv2.rectangle(bgr, (10, 10), (10 + bar_w, 26), color, -1)
+            cv2.rectangle(bgr, (10, 10), (10 + (w - 20), 26), (80, 80, 80), 1)
+            cv2.putText(bgr, f"Sharpness: {sharpness:.0f}", (14, 23),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+
+            # Label
+            cv2.putText(bgr, f"FOCUS MODE — {name}  |  NO FILES SAVED",
+                        (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 200, 255), 1)
+
+            if preview_queue is not None:
+                preview_queue.append(bgr)
+                if len(preview_queue) > 2:
+                    preview_queue.pop(0)
+
+        except PySpin.SpinnakerException as e:
+            if not stop_event.is_set():
+                print(f"\n  [{name}] Camera error: {e}")
+            break
+        except Exception as e:
+            if not stop_event.is_set():
+                print(f"\n  [{name}] Error: {e}")
+            break
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  FOCUS MODE SESSION
+# ──────────────────────────────────────────────────────────────────────────────
+def run_focus_mode(cfg, cam_list):
+    num_cams  = min(cam_list.GetSize(), 2)
+    cam_names = [cfg["camera_0_name"], cfg["camera_1_name"]]
+    pw        = int(cfg["image_width"]  * cfg["preview_scale"])
+    ph        = int(cfg["image_height"] * cfg["preview_scale"])
+
+    cameras    = []
+    queues     = []
+    cfg_refs   = []
+    stop_event = threading.Event()
+    threads    = []
+
+    try:
+        print("\n  Initialising cameras for focus mode...")
+        for i in range(num_cams):
+            cam = cam_list[i]
+            cam.Init()
+            configure_camera(cam, cfg, cam_names[i])
+            cam.BeginAcquisition()
+            cameras.append(cam)
+            queues.append([])
+            cfg_refs.append([dict(cfg)])
+
+        for i, cam in enumerate(cameras):
+            t = threading.Thread(
+                target=focus_loop,
+                args=(cam, cam_names[i], stop_event, queues[i], cfg_refs[i]),
+                daemon=True)
+            t.start()
+            threads.append(t)
+
+        print_focus_menu(cfg)
+
+        while True:
+            for i, q in enumerate(queues):
+                if q:
+                    small = cv2.resize(q[-1], (pw, ph))
+                    cv2.imshow(f"FOCUS — {cam_names[i]}", small)
+
+            cv2.waitKey(30)
+
+            if select.select([sys.stdin], [], [], 0)[0]:
+                k = sys.stdin.readline().strip().upper()
+                if k == "Q":
+                    break
+                elif k == "E":
+                    lo, hi, unit = SETTING_RANGES["exposure_time"]
+                    try:
+                        val = float(input(f"  New exposure ({lo}–{hi} µs): ").strip())
+                        apply_exposure(cameras, val)
+                        cfg["exposure_time"] = val
+                        for cr in cfg_refs: cr[0]["exposure_time"] = val
+                        print_focus_menu(cfg)
+                    except ValueError:
+                        print(f"  Invalid — must be {lo}–{hi}")
+                elif k == "G":
+                    lo, hi, unit = SETTING_RANGES["gain_db"]
+                    try:
+                        val = float(input(f"  New gain ({lo}–{hi} dB): ").strip())
+                        apply_gain(cameras, val)
+                        cfg["gain_db"] = val
+                        for cr in cfg_refs: cr[0]["gain_db"] = val
+                        print_focus_menu(cfg)
+                    except ValueError:
+                        print(f"  Invalid — must be {lo}–{hi}")
+
+    except KeyboardInterrupt:
+        print("\n  Ctrl+C — exiting focus mode.")
+    finally:
+        stop_event.set()
+        for t in threads:
+            t.join(timeout=3)
+        for cam in cameras:
+            try: cam.EndAcquisition(); cam.DeInit()
+            except Exception: pass
+        try: cv2.destroyAllWindows()
+        except Exception: pass
+
+    print("\n  Focus mode ended.\n")
+    time.sleep(1)
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  RECORDING SESSION
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 def run_recording(cfg, cam_list):
     num_cams  = min(cam_list.GetSize(), 2)
     cam_names = [cfg["camera_0_name"], cfg["camera_1_name"]]
+
+    save_opts = {
+        "save_raw":    cfg.get("save_raw",    True),
+        "save_motion": cfg.get("save_motion", True),
+        "save_csv":    cfg.get("save_csv",    True),
+        "save_traj":   cfg.get("save_traj",   True),
+    }
 
     os.makedirs(cfg["save_folder"], exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -533,20 +700,23 @@ def run_recording(cfg, cam_list):
     traj_paths   = [os.path.join(cfg["save_folder"], f"{cam_names[i]}_{ts}_trajmap.png")
                     for i in range(num_cams)]
 
-    # Open CSV
-    csv_file   = open(csv_path, "w", newline="")
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(["time_s", "frame", "camera", "bug_id",
-                         "cx", "cy", "area_px2", "bbox_x", "bbox_y", "bbox_w", "bbox_h"])
-    csv_lock = threading.Lock()
+    # CSV
+    csv_file   = None
+    csv_writer = None
+    csv_lock   = threading.Lock()
+    if save_opts["save_csv"]:
+        csv_file   = open(csv_path, "w", newline="")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(["time_s", "frame", "camera", "bug_id",
+                             "cx", "cy", "area_px2", "bbox_x", "bbox_y", "bbox_w", "bbox_h"])
 
     print("\n  Initialising cameras...")
     cameras, raw_writers, motion_writers, queues = [], [], [], []
-    bug_counts  = [[0] for _ in range(num_cams)]
-    cfg_refs    = [[dict(cfg)] for _ in range(num_cams)]
-    traj_maps   = [TrajectoryMap(cfg["image_width"], cfg["image_height"])
-                   for _ in range(num_cams)]
-    trackers    = [BugTracker(cfg) for _ in range(num_cams)]
+    bug_counts = [[0] for _ in range(num_cams)]
+    cfg_refs   = [[dict(cfg)] for _ in range(num_cams)]
+    traj_maps  = [TrajectoryMap(cfg["image_width"], cfg["image_height"])
+                  for _ in range(num_cams)]
+    trackers   = [BugTracker(cfg) for _ in range(num_cams)]
 
     try:
         for i in range(num_cams):
@@ -555,20 +725,28 @@ def run_recording(cfg, cam_list):
             configure_camera(cam, cfg, cam_names[i])
             cam.BeginAcquisition()
             cameras.append(cam)
-            raw_writers.append(make_writer(raw_paths[i], cfg, color=True))
-            motion_writers.append(make_writer(motion_paths[i], cfg, color=True))
+            rw = make_writer(raw_paths[i],    cfg, color=True) if save_opts["save_raw"]    else None
+            mw = make_writer(motion_paths[i], cfg, color=True) if save_opts["save_motion"] else None
+            raw_writers.append(rw)
+            motion_writers.append(mw)
             queues.append([] if cfg["show_preview"] else None)
-            print(f"    RAW    → {raw_paths[i]}")
-            print(f"    MOTION → {motion_paths[i]}")
-        print(f"    TRACKS → {csv_path}")
+            if rw: print(f"    RAW    → {raw_paths[i]}")
+            if mw: print(f"    MOTION → {motion_paths[i]}")
+        if save_opts["save_csv"]:
+            print(f"    TRACKS → {csv_path}")
+        if save_opts["save_traj"]:
+            for i in range(num_cams):
+                print(f"    TRAJ   → {traj_paths[i]}")
+        if not any(save_opts.values()):
+            print("    (No output files — all outputs disabled)")
     except Exception as e:
         print(f"\n  ERROR: {e}")
         for cam in cameras:
             try: cam.EndAcquisition(); cam.DeInit()
             except Exception: pass
         for w in raw_writers + motion_writers:
-            w.release()
-        csv_file.close()
+            if w: w.release()
+        if csv_file: csv_file.close()
         input("\n  Press Enter to return to menu...")
         return
 
@@ -581,9 +759,8 @@ def run_recording(cfg, cam_list):
                   csv_writer, csv_lock, i, cam_names[i],
                   stop_event, queues[i],
                   bug_counts[i], cfg_refs[i],
-                  traj_maps[i], trackers[i]),
-            daemon=True
-        )
+                  traj_maps[i], trackers[i], save_opts),
+            daemon=True)
         t.start()
         threads.append(t)
 
@@ -611,56 +788,60 @@ def run_recording(cfg, cam_list):
             if cfg["show_preview"]:
                 for i, q in enumerate(queues):
                     if q:
-                        frame = q[-1]
-                        small = cv2.resize(frame, (pw, ph))
+                        small = cv2.resize(q[-1], (pw, ph))
                         cv2.putText(small,
                                     f"{cam_names[i]}  {elapsed:.0f}s  bugs:{bug_counts[i][0]}",
                                     (8, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
                         cv2.imshow(cam_names[i], small)
-
-                    # Trajectory map window
-                    tmap = traj_maps[i].get_display(scale=traj_scale)
-                    cv2.imshow(f"{cam_names[i]} — flight paths", tmap)
-
+                    if save_opts["save_traj"]:
+                        tmap = traj_maps[i].get_display(scale=traj_scale)
+                        cv2.imshow(f"{cam_names[i]} — flight paths", tmap)
                 cv2.waitKey(1)
 
             if select.select([sys.stdin], [], [], 0.05)[0]:
                 key = sys.stdin.readline().strip().upper()
-
                 if key == "S":
                     print("\n  Stopping and saving...")
                     break
                 elif key == "E":
+                    lo, hi, _ = SETTING_RANGES["exposure_time"]
                     try:
-                        val = float(input("  New exposure (µs): ").strip())
+                        val = float(input(f"  New exposure ({lo}–{hi} µs): ").strip())
                         apply_exposure(cameras, val)
                         cfg["exposure_time"] = val
                         for cr in cfg_refs: cr[0]["exposure_time"] = val
-                    except ValueError: print("  Invalid.")
+                    except ValueError:
+                        print(f"  Invalid — must be {lo}–{hi}")
                 elif key == "G":
+                    lo, hi, _ = SETTING_RANGES["gain_db"]
                     try:
-                        val = float(input("  New gain (0–47 dB): ").strip())
+                        val = float(input(f"  New gain ({lo}–{hi} dB): ").strip())
                         apply_gain(cameras, val)
                         cfg["gain_db"] = val
                         for cr in cfg_refs: cr[0]["gain_db"] = val
-                    except ValueError: print("  Invalid.")
+                    except ValueError:
+                        print(f"  Invalid — must be {lo}–{hi}")
                 elif key == "T":
+                    lo, hi, _ = SETTING_RANGES["motion_threshold"]
                     try:
-                        val = int(input("  New motion threshold (0–255): ").strip())
+                        val = int(input(f"  New motion threshold ({lo}–{hi}): ").strip())
                         cfg["motion_threshold"] = val
                         for cr in cfg_refs: cr[0]["motion_threshold"] = val
-                    except ValueError: print("  Invalid.")
+                    except ValueError:
+                        print(f"  Invalid — must be {lo}–{hi}")
                 elif key == "L":
+                    lo, hi, _ = SETTING_RANGES["bg_learning_rate"]
                     try:
-                        val = float(input("  New BG learning rate (0.0–1.0): ").strip())
+                        val = float(input(f"  New BG learning rate ({lo}–{hi}): ").strip())
                         cfg["bg_learning_rate"] = val
                         for cr in cfg_refs: cr[0]["bg_learning_rate"] = val
-                    except ValueError: print("  Invalid.")
+                    except ValueError:
+                        print(f"  Invalid — must be {lo}–{hi}")
 
     except KeyboardInterrupt:
         print("\n  Ctrl+C — stopping.")
 
- # ── Clean shutdown ─────────────────────────────────────────────────────
+    # ── Clean shutdown ─────────────────────────────────────────────────────────
     print("\n  Stopping threads...")
     stop_event.set()
     for t in threads:
@@ -673,37 +854,41 @@ def run_recording(cfg, cam_list):
 
     print("  Releasing video writers...")
     for w in raw_writers + motion_writers:
-        try: w.release()
-        except Exception as e: print(f"  Writer release warning: {e}")
+        if w:
+            try: w.release()
+            except Exception as e: print(f"  Writer release warning: {e}")
 
-    print("  Closing CSV...")
-    try:
-        csv_file.flush()
-        csv_file.close()
-        print(f"  CSV saved → {csv_path}")
-    except Exception as e:
-        print(f"  CSV save error: {e}")
-
-    print("  Saving trajectory maps...")
-    for i in range(num_cams):
+    if csv_file:
+        print("  Closing CSV...")
         try:
-            os.makedirs(cfg["save_folder"], exist_ok=True)
-            result = cv2.imwrite(traj_paths[i], traj_maps[i].canvas)
-            if result:
-                print(f"  Trajectory map saved → {traj_paths[i]}")
-            else:
-                print(f"  WARNING: cv2.imwrite failed for {traj_paths[i]}")
+            csv_file.flush(); csv_file.close()
+            print(f"  CSV saved → {csv_path}")
         except Exception as e:
-            print(f"  Trajectory map error: {e}")
+            print(f"  CSV save error: {e}")
+
+    if save_opts["save_traj"]:
+        print("  Saving trajectory maps...")
+        for i in range(num_cams):
+            try:
+                result = cv2.imwrite(traj_paths[i], traj_maps[i].canvas)
+                if result:
+                    print(f"  Trajectory map saved → {traj_paths[i]}")
+                else:
+                    print(f"  WARNING: cv2.imwrite failed for {traj_paths[i]}")
+            except Exception as e:
+                print(f"  Trajectory map error: {e}")
 
     try:
         cv2.destroyAllWindows()
     except Exception:
         pass
 
-    print("\n  Files saved:")
-    all_files = (raw_paths[:num_cams] + motion_paths[:num_cams] +
-                 [csv_path] + traj_paths[:num_cams])
+    print(f"\n  Files saved to {cfg['save_folder']}:")
+    all_files = []
+    if save_opts["save_raw"]:    all_files += raw_paths[:num_cams]
+    if save_opts["save_motion"]: all_files += motion_paths[:num_cams]
+    if save_opts["save_csv"]:    all_files.append(csv_path)
+    if save_opts["save_traj"]:   all_files += traj_paths[:num_cams]
     for p in all_files:
         if os.path.exists(p):
             mb = os.path.getsize(p) / 1048576
@@ -713,12 +898,17 @@ def run_recording(cfg, cam_list):
 
     input("\n  Press Enter to return to menu...")
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  SETTING EDITOR HELPER
-# ─────────────────────────────────────────────────────────────────────────────
-def ask(prompt, current, cast=str, validate=None):
+# ──────────────────────────────────────────────────────────────────────────────
+#  SETTING EDITOR HELPER  (shows min/max for each setting)
+# ──────────────────────────────────────────────────────────────────────────────
+def ask(prompt, current, cast=str, validate=None, setting_key=None):
+    range_hint = ""
+    if setting_key and setting_key in SETTING_RANGES:
+        lo, hi, unit = SETTING_RANGES[setting_key]
+        unit_str = f" {unit}" if unit else ""
+        range_hint = f"  [min {lo} – max {hi}{unit_str}]"
     while True:
-        raw = input(f"  {prompt} [{current}]: ").strip()
+        raw = input(f"  {prompt}{range_hint} (current: {current}): ").strip()
         if raw == "":
             return current
         try:
@@ -727,13 +917,15 @@ def ask(prompt, current, cast=str, validate=None):
                 raise ValueError
             return val
         except (ValueError, TypeError):
-            print("  Invalid value — try again.")
+            if range_hint:
+                print(f"  Invalid — must be in range {range_hint.strip()}")
+            else:
+                print("  Invalid value — try again.")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 #  MAIN LOOP
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 def main():
-    # Install scipy if missing
     if not HAS_SCIPY:
         print("  Note: scipy not found — using greedy blob matching.")
         print("  For better tracking: pip install scipy\n")
@@ -748,28 +940,72 @@ def main():
             print_main_menu(cfg, num_cams)
             choice = input("  Enter option: ").strip().upper()
 
-            if   choice == "1":  cfg["save_folder"]        = ask("Save folder", cfg["save_folder"])
-            elif choice == "2":  cfg["camera_0_name"]      = ask("Camera 0 name", cfg["camera_0_name"])
-            elif choice == "3":  cfg["camera_1_name"]      = ask("Camera 1 name", cfg["camera_1_name"])
-            elif choice == "4":  cfg["frame_rate"]         = ask("Frame rate (fps)", cfg["frame_rate"], float, lambda v: 1<=v<=200)
-            elif choice == "5":  cfg["exposure_time"]      = ask("Exposure (µs)", cfg["exposure_time"], float, lambda v: v>0)
-            elif choice == "6":  cfg["gain_db"]            = ask("Gain (0–47 dB)", cfg["gain_db"], float, lambda v: 0<=v<=47)
+            if   choice == "1":
+                cfg["save_folder"]       = ask("Save folder", cfg["save_folder"], setting_key=None)
+            elif choice == "2":
+                cfg["camera_0_name"]     = ask("Camera 0 name", cfg["camera_0_name"])
+            elif choice == "3":
+                cfg["camera_1_name"]     = ask("Camera 1 name", cfg["camera_1_name"])
+            elif choice == "4":
+                cfg["frame_rate"]        = ask("Frame rate", cfg["frame_rate"], float,
+                                               lambda v: 1<=v<=200, "frame_rate")
+            elif choice == "5":
+                cfg["exposure_time"]     = ask("Exposure time", cfg["exposure_time"], float,
+                                               lambda v: v>0, "exposure_time")
+            elif choice == "6":
+                cfg["gain_db"]           = ask("Gain", cfg["gain_db"], float,
+                                               lambda v: 0<=v<=47, "gain_db")
             elif choice == "7":
-                cfg["image_width"]  = ask("Width  (max 1440)", cfg["image_width"],  int, lambda v: 0<v<=1440)
-                cfg["image_height"] = ask("Height (max 1080)", cfg["image_height"], int, lambda v: 0<v<=1080)
-            elif choice == "8":  cfg["bg_learning_rate"]  = ask("BG learning rate (0–1)", cfg["bg_learning_rate"], float, lambda v: 0<=v<=1)
-            elif choice == "9":  cfg["motion_threshold"]  = ask("Motion threshold (0–255)", cfg["motion_threshold"], int, lambda v: 0<=v<=255)
-            elif choice == "10": cfg["min_bug_area"]      = ask("Min bug area (px²)", cfg["min_bug_area"], int, lambda v: v>0)
-            elif choice == "11": cfg["blob_dilation"]     = ask("Blob dilation (0–10)", cfg["blob_dilation"], int, lambda v: 0<=v<=10)
-            elif choice == "12": cfg["trail_length"]      = ask("Trail length (frames)", cfg["trail_length"], int, lambda v: v>0)
-            elif choice == "13": cfg["max_match_distance"]= ask("Max match distance (px)", cfg["max_match_distance"], int, lambda v: v>0)
-            elif choice == "14": cfg["track_timeout"]     = ask("Track timeout (frames)", cfg["track_timeout"], int, lambda v: v>0)
-            elif choice == "15": cfg["duration_seconds"]  = ask("Duration (0=manual stop)", cfg["duration_seconds"], int, lambda v: v>=0)
-            elif choice == "16": cfg["show_preview"]      = not cfg["show_preview"]
-            elif choice == "17": cfg["preview_scale"]     = ask("Preview scale (0.1–1.0)", cfg["preview_scale"], float, lambda v: 0.1<=v<=1)
+                cfg["image_width"]       = ask("Width", cfg["image_width"], int,
+                                               lambda v: 0<v<=1440, "image_width")
+                cfg["image_height"]      = ask("Height", cfg["image_height"], int,
+                                               lambda v: 0<v<=1080, "image_height")
+            elif choice == "8":
+                cfg["bg_learning_rate"]  = ask("BG learning rate", cfg["bg_learning_rate"], float,
+                                               lambda v: 0<=v<=1, "bg_learning_rate")
+            elif choice == "9":
+                cfg["motion_threshold"]  = ask("Motion threshold", cfg["motion_threshold"], int,
+                                               lambda v: 0<=v<=255, "motion_threshold")
+            elif choice == "10":
+                cfg["min_bug_area"]      = ask("Min bug area", cfg["min_bug_area"], int,
+                                               lambda v: v>0, "min_bug_area")
+            elif choice == "11":
+                cfg["blob_dilation"]     = ask("Blob dilation", cfg["blob_dilation"], int,
+                                               lambda v: 0<=v<=10, "blob_dilation")
+            elif choice == "12":
+                cfg["trail_length"]      = ask("Trail length", cfg["trail_length"], int,
+                                               lambda v: v>0, "trail_length")
+            elif choice == "13":
+                cfg["max_match_distance"]= ask("Max match distance", cfg["max_match_distance"], int,
+                                               lambda v: v>0, "max_match_distance")
+            elif choice == "14":
+                cfg["track_timeout"]     = ask("Track timeout", cfg["track_timeout"], int,
+                                               lambda v: v>0, "track_timeout")
+            elif choice == "15":
+                cfg["duration_seconds"]  = ask("Duration", cfg["duration_seconds"], int,
+                                               lambda v: v>=0, "duration_seconds")
+            elif choice == "16":
+                cfg["show_preview"]      = not cfg["show_preview"]
+            elif choice == "17":
+                cfg["preview_scale"]     = ask("Preview scale", cfg["preview_scale"], float,
+                                               lambda v: 0.1<=v<=1, "preview_scale")
+            elif choice == "18":
+                cfg["save_raw"]          = not cfg["save_raw"]
+            elif choice == "19":
+                cfg["save_motion"]       = not cfg["save_motion"]
+            elif choice == "20":
+                cfg["save_csv"]          = not cfg["save_csv"]
+            elif choice == "21":
+                cfg["save_traj"]         = not cfg["save_traj"]
             elif choice == "S":
                 save_settings(cfg)
                 time.sleep(1)
+            elif choice == "F":
+                if num_cams == 0:
+                    print("\n  No cameras detected.")
+                    time.sleep(2)
+                else:
+                    run_focus_mode(cfg, cam_list)
             elif choice == "R":
                 if num_cams == 0:
                     print("\n  No cameras detected.")

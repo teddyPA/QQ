@@ -1,0 +1,12 @@
+#!/bin/bash
+# FLIR Tracker Launcher
+# Opens a Terminal window and runs flir_capture.py in the project directory.
+
+SCRIPT_DIR="$HOME/Documents/QuitQuito/Cameras"
+
+osascript <<EOF
+tell application "Terminal"
+    activate
+    do script "cd '$SCRIPT_DIR' && echo '=== FLIR Mosquito Tracker v2 ===' && python3 flir_capture.py"
+end tell
+EOF
