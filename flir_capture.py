@@ -18,7 +18,7 @@ Install:
             python3.10 -m pip install spinnaker_python-4.3.0.189-cp310-cp310-macosx_13_0_arm64.whl
 """
 
-VERSION    = "2.2"
+VERSION    = "2.3"
 BUILD_DATE = "2026-04-01"
 
 import os, json, threading, time, sys, csv, queue
@@ -121,6 +121,9 @@ TRAIL_COLORS = [
 
 # Preview texture dimensions
 PREV_W, PREV_H = 440, 310
+
+# Camera hardware settings that can be applied live while cameras are running
+_LIVE_CAM_SETTINGS = {"gain_db", "exposure_time", "frame_rate"}
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  SETTINGS
@@ -449,6 +452,7 @@ class QQCamerasApp:
         self.record_t0      = None
         self.traj_paths     = []
         self.record_save_opts = {}
+        self._pending_alert  = None   # set by background cleanup threads
 
     # ── Dear PyGui setup ───────────────────────────────────────────────────────
 
@@ -706,6 +710,25 @@ class QQCamerasApp:
             dpg.set_value("folder_label", f"Output -> {value}")
         for cr in self.cfg_refs:
             cr[0] = dict(self.cfg)
+        # Apply hardware settings immediately to any running cameras
+        if key in _LIVE_CAM_SETTINGS and self.cameras:
+            self._apply_live_cam_setting(key, value)
+
+    def _apply_live_cam_setting(self, key, value):
+        """Push a single hardware setting to all currently-running cameras."""
+        for cam in self.cameras:
+            try:
+                if key == "gain_db":
+                    cam.GainAuto.SetValue(PySpin.GainAuto_Off)
+                    cam.Gain.SetValue(float(value))
+                elif key == "exposure_time":
+                    cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
+                    cam.ExposureTime.SetValue(float(value))
+                elif key == "frame_rate":
+                    cam.AcquisitionFrameRateEnable.SetValue(True)
+                    cam.AcquisitionFrameRate.SetValue(float(value))
+            except Exception as e:
+                print(f"  [live setting] {key}={value}: {e}")
 
     # ── Per-tick update ────────────────────────────────────────────────────────
 
@@ -717,6 +740,12 @@ class QQCamerasApp:
                 dpg.set_value(self.tex_ids[i], frame_to_texture(frame))
             except queue.Empty:
                 pass
+
+        # Show deferred alerts from background cleanup threads
+        if self._pending_alert:
+            msg, title = self._pending_alert
+            self._pending_alert = None
+            self._alert(msg, title=title)
 
         # Update status
         if self.mode == "recording" and self.record_t0:
@@ -834,23 +863,42 @@ class QQCamerasApp:
 
     def _stop_recording(self):
         if self.stop_event: self.stop_event.set()
-        for t in self.threads: t.join(timeout=5)
-        for w in self.raw_writers + self.motion_writers:
-            if w:
-                try: w.release()
-                except Exception: pass
-        if self.csv_file:
-            try: self.csv_file.flush(); self.csv_file.close()
-            except Exception: pass
-            self.csv_file = None
-        if self.record_save_opts.get("save_traj"):
-            for i in range(self.num_cams):
-                if self.traj_maps[i]:
-                    try: cv2.imwrite(self.traj_paths[i], self.traj_maps[i].canvas)
-                    except Exception: pass
-        self._release_cameras()
+        # Snapshot everything needed for cleanup, clear live refs immediately
+        threads_snap     = list(self.threads)
+        cameras_snap     = list(self.cameras)
+        raw_snap         = list(self.raw_writers)
+        motion_snap      = list(self.motion_writers)
+        csv_snap         = self.csv_file
+        save_opts_snap   = dict(self.record_save_opts)
+        traj_maps_snap   = list(self.traj_maps)
+        traj_paths_snap  = list(self.traj_paths)
+        save_folder      = self.cfg["save_folder"]
+        self.threads     = []; self.cameras = []
+        self.raw_writers = [None, None]; self.motion_writers = [None, None]
+        self.csv_file    = None
+        # Update UI right away — no blocking in the DPG callback
         self._set_mode("idle")
-        self._alert(f"Recording saved to:\n{self.cfg['save_folder']}", title="Done")
+        # Background thread does blocking join + file flush/release
+        def _cleanup():
+            for t in threads_snap:
+                t.join(timeout=5)
+            for w in raw_snap + motion_snap:
+                if w:
+                    try: w.release()
+                    except Exception: pass
+            if csv_snap:
+                try: csv_snap.flush(); csv_snap.close()
+                except Exception: pass
+            if save_opts_snap.get("save_traj"):
+                for tm, tp in zip(traj_maps_snap, traj_paths_snap):
+                    if tm:
+                        try: cv2.imwrite(tp, tm.canvas)
+                        except Exception: pass
+            for cam in cameras_snap:
+                try: cam.EndAcquisition(); cam.DeInit()
+                except Exception: pass
+            self._pending_alert = (f"Recording saved to:\n{save_folder}", "Done")
+        threading.Thread(target=_cleanup, daemon=True).start()
 
     # ── Focus mode ─────────────────────────────────────────────────────────────
 
@@ -880,11 +928,22 @@ class QQCamerasApp:
 
     def _stop_focus(self):
         if self.stop_event: self.stop_event.set()
-        for t in self.threads: t.join(timeout=3)
-        self._release_cameras()
+        # Snapshot and clear live refs immediately so _tick stops feeding frames
+        threads_snap = list(self.threads)
+        cameras_snap = list(self.cameras)
+        self.threads = []; self.cameras = []
+        # Update UI right away — no blocking in the DPG callback
         self._set_mode("idle")
         for i in range(2):
             dpg.set_value(self.tex_ids[i], blank_texture())
+        # Background thread does the blocking join + camera release
+        def _cleanup():
+            for t in threads_snap:
+                t.join(timeout=3)
+            for cam in cameras_snap:
+                try: cam.EndAcquisition(); cam.DeInit()
+                except Exception: pass
+        threading.Thread(target=_cleanup, daemon=True).start()
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 
