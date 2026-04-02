@@ -1,0 +1,12 @@
+#!/bin/bash
+# QQ_Cameras Launcher
+# Double-click this app to open a Terminal and launch the GUI.
+
+SCRIPT_DIR="$HOME/Documents/QuitQuito/Cameras"
+
+osascript <<EOF
+tell application "Terminal"
+    activate
+    do script "cd '$SCRIPT_DIR' && python3.10 flir_capture.py"
+end tell
+EOF

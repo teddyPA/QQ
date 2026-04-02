@@ -4,19 +4,17 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>FlirTracker</string>
+    <string>QQ_Cameras</string>
     <key>CFBundleDisplayName</key>
-    <string>FLIR Tracker</string>
+    <string>QQ_Cameras</string>
     <key>CFBundleIdentifier</key>
-    <string>com.quitquito.flirtracker</string>
+    <string>com.quitquito.qq-cameras</string>
     <key>CFBundleVersion</key>
-    <string>2.0</string>
+    <string>2.1</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleExecutable</key>
-    <string>FlirTracker</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
+    <string>QQ_Cameras</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.14</string>
     <key>NSHighResolutionCapable</key>

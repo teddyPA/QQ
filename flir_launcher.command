@@ -1,27 +1,26 @@
 #!/bin/bash
-# FLIR Tracker — simple launcher
-# Double-click this file to start the program.
-# (Requires: right-click → Open the first time to bypass Gatekeeper)
+# QQ_Cameras — simple launcher
+# Double-click to start. First time: right-click → Open (Gatekeeper).
 
 SCRIPT_DIR="$HOME/Documents/QuitQuito/Cameras"
 
-cd "$SCRIPT_DIR" || { echo "ERROR: Could not find $SCRIPT_DIR"; read -p "Press Enter to exit..."; exit 1; }
+cd "$SCRIPT_DIR" || {
+    echo "ERROR: Folder not found: $SCRIPT_DIR"
+    read -p "Press Enter to exit..."; exit 1
+}
+
+# Install missing dependencies silently on first run
+python3.10 -c "import PIL" 2>/dev/null || {
+    echo "Installing Pillow (required for camera preview)..."
+    python3.10 -m pip install pillow --quiet
+}
 
 echo "================================================"
-echo "   FLIR Mosquito Tracker v2"
-echo "   Project: $SCRIPT_DIR"
+echo "   QQ_Cameras  v2.1  —  2026-04-01"
 echo "================================================"
 echo ""
 
-# Try to find Python with required packages
-if command -v python3 &>/dev/null; then
-    python3 flir_capture.py
-elif command -v python &>/dev/null; then
-    python flir_capture.py
-else
-    echo "ERROR: Python not found."
-    echo "Install Python 3 from https://www.python.org"
-fi
+python3.10 flir_capture.py
 
 echo ""
 read -p "Press Enter to close..."
