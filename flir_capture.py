@@ -24,8 +24,8 @@ Install:
             python3.10 -m pip install spinnaker_python-4.3.0.189-cp310-cp310-macosx_13_0_arm64.whl
 """
 
-VERSION    = "2.7"
-BUILD_DATE = "2026-04-01"
+VERSION    = "2.9"
+BUILD_DATE = "2026-04-02"
 
 import math, os, json, threading, time, sys, csv, queue, signal, traceback
 from datetime import datetime
@@ -131,6 +131,9 @@ DEFAULTS = {
     "trap_cy_1":            540,   # camera 1 trap centre Y
     "trap_r_1":             150,   # camera 1 trap radius (px)
     "metrics_interval_s":   60,    # seconds between periodic metrics CSV rows
+    # Window position — saved on quit, restored on next launch (multi-monitor support)
+    "window_x":             0,
+    "window_y":             0,
 }
 
 # Settings file lives next to the script so it persists across runs
@@ -432,18 +435,89 @@ def render_motion_frame(mono, tracked, tracker, trap_zone=None):
 #  CAMERA HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
 def configure_camera(cam, cfg, name):
-    cam.AcquisitionFrameRateEnable.SetValue(True)
-    cam.AcquisitionFrameRate.SetValue(float(cfg["frame_rate"]))
-    cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
-    cam.ExposureTime.SetValue(float(cfg["exposure_time"]))
-    cam.GainAuto.SetValue(PySpin.GainAuto_Off)
-    cam.Gain.SetValue(float(cfg["gain_db"]))
-    cam.OffsetX.SetValue(0); cam.OffsetY.SetValue(0)
-    cam.Width.SetValue(int(cfg["image_width"]))
-    cam.Height.SetValue(int(cfg["image_height"]))
-    cam.PixelFormat.SetValue(PySpin.PixelFormat_Mono8)
-    cam.TriggerMode.SetValue(PySpin.TriggerMode_Off)
-    cam.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
+    """Configure camera for acquisition.  Each attribute is set independently so
+    that a single unsupported feature does not abort the whole setup.
+    Critical settings (AcquisitionMode) are retried; warnings are logged.
+    """
+    def _s(desc, fn):
+        try:
+            fn()
+            log(f"  [{name}] {desc} OK")
+        except Exception as e:
+            log(f"  [{name}] {desc} WARN: {e}")
+
+    # Some FLIR models use AcquisitionFrameRateEnable, others AcquisitionFrameRateEnabled
+    try:
+        cam.AcquisitionFrameRateEnable.SetValue(True)
+        log(f"  [{name}] AcquisitionFrameRateEnable OK")
+    except Exception:
+        try:
+            cam.AcquisitionFrameRateEnabled.SetValue(True)
+            log(f"  [{name}] AcquisitionFrameRateEnabled OK")
+        except Exception as e:
+            log(f"  [{name}] FPS enable WARN: {e}")
+
+    _s("FrameRate",    lambda: cam.AcquisitionFrameRate.SetValue(float(cfg["frame_rate"])))
+    _s("ExposureAuto", lambda: cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Off))
+    _s("ExposureTime", lambda: cam.ExposureTime.SetValue(float(cfg["exposure_time"])))
+    _s("GainAuto",     lambda: cam.GainAuto.SetValue(PySpin.GainAuto_Off))
+    _s("Gain",         lambda: cam.Gain.SetValue(float(cfg["gain_db"])))
+
+    # Reset ROI before changing dimensions
+    _s("OffsetX=0",    lambda: cam.OffsetX.SetValue(0))
+    _s("OffsetY=0",    lambda: cam.OffsetY.SetValue(0))
+
+    # Width/Height: try requested value, fall back to camera max
+    try:
+        cam.Width.SetValue(int(cfg["image_width"]))
+        log(f"  [{name}] Width={cfg['image_width']} OK")
+    except Exception as e:
+        log(f"  [{name}] Width WARN ({e}) — using max")
+        try: cam.Width.SetValue(cam.Width.GetMax())
+        except Exception as e2: log(f"  [{name}] Width max WARN: {e2}")
+
+    try:
+        cam.Height.SetValue(int(cfg["image_height"]))
+        log(f"  [{name}] Height={cfg['image_height']} OK")
+    except Exception as e:
+        log(f"  [{name}] Height WARN ({e}) — using max")
+        try: cam.Height.SetValue(cam.Height.GetMax())
+        except Exception as e2: log(f"  [{name}] Height max WARN: {e2}")
+
+    _s("PixelFormat",  lambda: cam.PixelFormat.SetValue(PySpin.PixelFormat_Mono8))
+    _s("TriggerMode",  lambda: cam.TriggerMode.SetValue(PySpin.TriggerMode_Off))
+
+    # AcquisitionMode MUST be Continuous for GetNextImage to work
+    try:
+        cam.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
+        log(f"  [{name}] AcquisitionMode=Continuous OK")
+    except Exception as e:
+        log(f"  [{name}] AcquisitionMode CRITICAL: {e}")
+        raise  # re-raise so caller knows this is fatal
+
+    # Stream buffer — use NewestOnly so the SDK drops stale frames when the
+    # pipeline is slow rather than exhausting the buffer pool [-1020].
+    try:
+        tlmap = cam.GetTLStreamNodeMap()
+        # Set buffer count mode to Manual so we can control the count
+        mode_node = PySpin.CEnumerationPtr(tlmap.GetNode("StreamBufferCountMode"))
+        if PySpin.IsAvailable(mode_node) and PySpin.IsWritable(mode_node):
+            manual = mode_node.GetEntryByName("Manual")
+            if PySpin.IsAvailable(manual) and PySpin.IsReadable(manual):
+                mode_node.SetIntValue(manual.GetValue())
+        # Keep a small pool — NewestOnly will discard old frames automatically
+        cnt_node = PySpin.CIntegerPtr(tlmap.GetNode("StreamBufferCountManual"))
+        if PySpin.IsAvailable(cnt_node) and PySpin.IsWritable(cnt_node):
+            cnt_node.SetValue(max(cnt_node.GetMin(), min(4, cnt_node.GetMax())))
+        # NewestOnly: always hand the caller the most recent frame
+        hdl_node = PySpin.CEnumerationPtr(tlmap.GetNode("StreamBufferHandlingMode"))
+        if PySpin.IsAvailable(hdl_node) and PySpin.IsWritable(hdl_node):
+            newest = hdl_node.GetEntryByName("NewestOnly")
+            if PySpin.IsAvailable(newest) and PySpin.IsReadable(newest):
+                hdl_node.SetIntValue(newest.GetValue())
+                log(f"  [{name}] StreamBuffer=NewestOnly OK")
+    except Exception as e:
+        log(f"  [{name}] StreamBuffer config WARN: {e}")
 
 def make_writer(filepath, cfg):
     for fourcc_str in ("avc1", "mp4v"):
@@ -474,27 +548,38 @@ def capture_loop(cam, raw_writer, motion_writer, csv_writer, csv_lock,
     bg_sub      = make_bg_subtractor()
     frame_count = 0
     t0          = time.time()
+    # Brief settle — cameras need a moment after BeginAcquisition, especially
+    # when two cameras share the same USB host controller
+    time.sleep(0.15)
     while not stop_event.is_set():
-        # Apply any pending hardware setting changes (queued by main thread via cfg_ref[1])
+        # Apply any pending hardware setting changes (queued by main thread via cfg_ref[1]).
+        # NOTE: Do NOT call GainAuto / ExposureAuto / FrameRateEnable here —
+        # they were already set Off/True during configure_camera and calling them
+        # again while streaming aborts the stream on many FLIR models [-1012].
         if cfg_ref[1]:
             pending, cfg_ref[1] = cfg_ref[1].copy(), {}
             for k, v in pending.items():
                 try:
                     if k == "gain_db":
-                        cam.GainAuto.SetValue(PySpin.GainAuto_Off)
                         cam.Gain.SetValue(float(v))
+                        log(f"  [{name}] live gain → {v} dB")
                     elif k == "exposure_time":
-                        cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
                         cam.ExposureTime.SetValue(float(v))
+                        log(f"  [{name}] live exposure → {v} µs")
                     elif k == "frame_rate":
-                        cam.AcquisitionFrameRateEnable.SetValue(True)
                         cam.AcquisitionFrameRate.SetValue(float(v))
+                        log(f"  [{name}] live fps → {v}")
                 except Exception as e:
-                    log(f"  [{name}] FAILED setting {k}={v}: {e}")
+                    log(f"  [{name}] FAILED live setting {k}={v}: {e}")
+
+        # img is held open between GetNextImage and Release; use try/finally
+        # so the buffer is ALWAYS returned to the pool, even on exceptions.
+        img = None
         try:
             img = cam.GetNextImage(1000)
-            if img.IsIncomplete(): img.Release(); continue
-            mono        = img.GetNDArray(); img.Release()
+            if img.IsIncomplete():
+                continue          # finally releases it below
+            mono        = img.GetNDArray()   # copies pixel data into numpy array
             frame_count += 1
             ts          = time.time() - t0
             cfg         = cfg_ref[0]
@@ -524,37 +609,48 @@ def capture_loop(cam, raw_writer, motion_writer, csv_writer, csv_lock,
                                              f"{cx:.1f}",f"{cy:.1f}",int(area),x,y,w,h])
             push_frame(frame_q, motion_frame)
         except PySpin.SpinnakerException as e:
-            if not stop_event.is_set(): print(f"  [{name}] Camera error: {e}")
+            if not stop_event.is_set(): log(f"  [{name}] capture Spinnaker error: {e}")
             break
         except Exception as e:
-            if not stop_event.is_set(): print(f"  [{name}] Error: {e}")
+            if not stop_event.is_set(): log(f"  [{name}] capture error: {e}\n{traceback.format_exc()}")
             break
+        finally:
+            # Always return the image buffer to the pool
+            if img is not None:
+                try: img.Release()
+                except Exception: pass
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  FOCUS THREAD
 # ──────────────────────────────────────────────────────────────────────────────
 def focus_loop(cam, name, stop_event, frame_q, cfg_ref):
+    # Brief settle — same reason as capture_loop
+    time.sleep(0.15)
     while not stop_event.is_set():
-        # Apply any pending hardware setting changes (queued by main thread via cfg_ref[1])
+        # Apply pending hardware setting changes — same rules as capture_loop:
+        # no Auto/Enable calls while streaming to avoid stream abort [-1012].
         if cfg_ref[1]:
             pending, cfg_ref[1] = cfg_ref[1].copy(), {}
             for k, v in pending.items():
                 try:
                     if k == "gain_db":
-                        cam.GainAuto.SetValue(PySpin.GainAuto_Off)
                         cam.Gain.SetValue(float(v))
+                        log(f"  [{name}] live gain → {v} dB")
                     elif k == "exposure_time":
-                        cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
                         cam.ExposureTime.SetValue(float(v))
+                        log(f"  [{name}] live exposure → {v} µs")
                     elif k == "frame_rate":
-                        cam.AcquisitionFrameRateEnable.SetValue(True)
                         cam.AcquisitionFrameRate.SetValue(float(v))
+                        log(f"  [{name}] live fps → {v}")
                 except Exception as e:
-                    log(f"  [{name}] FAILED setting {k}={v}: {e}")
+                    log(f"  [{name}] FAILED live setting {k}={v}: {e}")
+
+        img = None
         try:
             img = cam.GetNextImage(1000)
-            if img.IsIncomplete(): img.Release(); continue
-            mono = img.GetNDArray(); img.Release()
+            if img.IsIncomplete():
+                continue          # finally releases it
+            mono = img.GetNDArray()
             bgr  = cv2.cvtColor(mono, cv2.COLOR_GRAY2BGR)
             h, w = bgr.shape[:2]
             sharpness = cv2.Laplacian(mono, cv2.CV_64F).var()
@@ -572,11 +668,15 @@ def focus_loop(cam, name, stop_event, frame_q, cfg_ref):
                         (10,h-10),cv2.FONT_HERSHEY_SIMPLEX,0.4,(0,200,255),1)
             push_frame(frame_q, bgr)
         except PySpin.SpinnakerException as e:
-            if not stop_event.is_set(): print(f"  [{name}] Focus error: {e}")
+            if not stop_event.is_set(): log(f"  [{name}] focus Spinnaker error: {e}")
             break
         except Exception as e:
-            if not stop_event.is_set(): print(f"  [{name}] Error: {e}")
+            if not stop_event.is_set(): log(f"  [{name}] focus error: {e}\n{traceback.format_exc()}")
             break
+        finally:
+            if img is not None:
+                try: img.Release()
+                except Exception: pass
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  FRAME → DEAR PYGUI TEXTURE
@@ -759,9 +859,12 @@ class QQCamerasApp:
         dpg.create_context()
         self._apply_theme()
 
-        # Show & maximise FIRST so we know the actual screen size before building UI
+        # Show & maximise — position on the same monitor as last time
+        win_x = int(self.cfg.get("window_x", 0))
+        win_y = int(self.cfg.get("window_y", 0))
         dpg.create_viewport(
             title=f"QQ_Cameras  v{VERSION}  |  {BUILD_DATE}",
+            x_pos=win_x, y_pos=win_y,
             width=1400, height=900,
             min_width=900, min_height=600)
         dpg.setup_dearpygui()
@@ -1018,13 +1121,16 @@ class QQCamerasApp:
         lo, hi, unit = SETTING_RANGES.get(key, (0.0, 1e9, ""))
         hint = f"  {lo} – {hi}" + (f" {unit}" if unit else "")
         val  = float(self.cfg.get(key, lo))
+        # user_data=key so DPG passes key as 3rd arg (u); avoids the default-
+        # keyword-arg-override bug where DPG calls callback(s, a, user_data=None)
         dpg.add_input_double(
             label=f"{label}{hint}", tag=f"s_{key}",
             default_value=val,
             min_value=float(lo), max_value=float(hi),
             min_clamped=True, max_clamped=True,
             width=110,
-            callback=lambda s, a, k=key: self._cfg_set(k, a))
+            user_data=key,
+            callback=lambda s, a, u: self._cfg_set(u, a))
 
     def _int_row(self, key, label):
         lo, hi, unit = SETTING_RANGES.get(key, (0, 9999, ""))
@@ -1036,7 +1142,8 @@ class QQCamerasApp:
             min_value=int(lo), max_value=int(hi),
             min_clamped=True, max_clamped=True,
             width=110,
-            callback=lambda s, a, k=key: self._cfg_set(k, a))
+            user_data=key,
+            callback=lambda s, a, u: self._cfg_set(u, a))
 
     def _text_row(self, key, label):
         dpg.add_input_text(
@@ -1044,13 +1151,15 @@ class QQCamerasApp:
             default_value=str(self.cfg.get(key, "")),
             width=150,
             on_enter=True,
-            callback=lambda s, a, k=key: self._cfg_set(k, a))
+            user_data=key,
+            callback=lambda s, a, u: self._cfg_set(u, a))
 
     def _bool_row(self, key, label):
         dpg.add_checkbox(
             label=label, tag=f"s_{key}",
             default_value=bool(self.cfg.get(key, False)),
-            callback=lambda s, a, k=key: self._cfg_set(k, a))
+            user_data=key,
+            callback=lambda s, a, u: self._cfg_set(u, a))
 
     def _build_settings(self):
         self._section("File / Camera")
@@ -1272,15 +1381,31 @@ class QQCamerasApp:
         self.motion_writers = [None]*self.num_cams
         self.cameras        = []
 
+        inited_cams = []
         try:
             for i in range(self.num_cams):
-                cam = self.cam_list[i]; cam.Init()
+                cam = self.cam_list[i]
+                log(f"  cam {i}: Init …")
+                cam.Init()
+                inited_cams.append(cam)
+                log(f"  cam {i}: Init OK — configure …")
                 configure_camera(cam, self.cfg, names[i])
-                cam.BeginAcquisition(); self.cameras.append(cam)
+                log(f"  cam {i}: BeginAcquisition …")
+                cam.BeginAcquisition()
+                log(f"  cam {i}: BeginAcquisition OK")
+                self.cameras.append(cam)
                 if save_opts["save_raw"]:    self.raw_writers[i]    = make_writer(raw_paths[i],    self.cfg)
                 if save_opts["save_motion"]: self.motion_writers[i] = make_writer(motion_paths[i], self.cfg)
         except Exception as e:
-            self._alert(f"Camera error: {e}"); self._release_cameras(); return
+            log(f"_start_recording ERROR: {e}\n{traceback.format_exc()}")
+            self._alert(f"Camera error:\n{e}")
+            for cam in inited_cams:
+                try: cam.EndAcquisition()
+                except Exception: pass
+                try: cam.DeInit()
+                except Exception: pass
+            self.cameras = []
+            return
 
         self._flush_queues()
         self.stop_event = threading.Event(); self.threads = []
@@ -1370,14 +1495,31 @@ class QQCamerasApp:
             self._alert("No cameras detected."); return
         names = [self.cfg["camera_0_name"], self.cfg["camera_1_name"]]
         self.cameras  = []
+        inited_cams   = []   # ALL Init()'d cameras, for safe cleanup if we abort
         self.cfg_refs = [[dict(self.cfg), {}] for _ in range(self.num_cams)]
         try:
             for i in range(self.num_cams):
-                cam = self.cam_list[i]; cam.Init()
+                cam = self.cam_list[i]
+                log(f"  cam {i}: Init …")
+                cam.Init()
+                inited_cams.append(cam)
+                log(f"  cam {i}: Init OK — configure …")
                 configure_camera(cam, self.cfg, names[i])
-                cam.BeginAcquisition(); self.cameras.append(cam)
+                log(f"  cam {i}: BeginAcquisition …")
+                cam.BeginAcquisition()
+                log(f"  cam {i}: BeginAcquisition OK")
+                self.cameras.append(cam)
         except Exception as e:
-            self._alert(f"Camera error: {e}"); self._release_cameras(); return
+            log(f"_start_focus ERROR: {e}\n{traceback.format_exc()}")
+            self._alert(f"Camera error:\n{e}")
+            # Clean up every Init()'d camera, not just BeginAcquisition()'d ones
+            for cam in inited_cams:
+                try: cam.EndAcquisition()
+                except Exception: pass
+                try: cam.DeInit()
+                except Exception: pass
+            self.cameras = []
+            return
         self._flush_queues()
         self.stop_event = threading.Event(); self.threads = []
         for i in range(self.num_cams):
@@ -1424,16 +1566,30 @@ class QQCamerasApp:
             self._alert(f"Save error: {e}")
 
     def _alert(self, msg, title="QQ_Cameras"):
-        """Simple modal popup."""
-        tag = "alert_modal"
-        if dpg.does_item_exist(tag):
-            dpg.delete_item(tag)
-        with dpg.window(label=title, tag=tag, modal=True,
+        """Modal popup.  OK button is auto-focused so Enter / Space dismisses it."""
+        modal_tag   = "alert_modal"
+        handler_tag = "alert_key_handler"
+        for t in (modal_tag, handler_tag):
+            if dpg.does_item_exist(t):
+                dpg.delete_item(t)
+
+        def _close():
+            for t in (modal_tag, handler_tag):
+                if dpg.does_item_exist(t):
+                    dpg.delete_item(t)
+
+        with dpg.window(label=title, tag=modal_tag, modal=True,
                         no_resize=True, width=420):
             dpg.add_text(msg, wrap=400)
             dpg.add_spacer(height=10)
-            dpg.add_button(label="OK", width=80,
-                           callback=lambda: dpg.delete_item(tag))
+            ok_btn = dpg.add_button(label="OK", width=80, callback=_close)
+
+        # Register Enter / Escape as keyboard shortcuts while the modal is open
+        with dpg.handler_registry(tag=handler_tag):
+            dpg.add_key_press_handler(dpg.mvKey_Return,  callback=_close)
+            dpg.add_key_press_handler(dpg.mvKey_Escape,  callback=_close)
+
+        dpg.focus_item(ok_btn)
 
     def _quit(self):
         if self.mode in ("recording","focus"):
@@ -1474,6 +1630,16 @@ class QQCamerasApp:
         self.motion_writers = [None,None]
 
     def _shutdown(self):
+        # Save current window position so next launch opens on the same monitor
+        try:
+            pos = dpg.get_viewport_pos()
+            self.cfg["window_x"] = int(pos[0])
+            self.cfg["window_y"] = int(pos[1])
+            save_settings(self.cfg)
+            log(f"Window position saved: {pos[0]},{pos[1]}")
+        except Exception as e:
+            log(f"Position save failed: {e}")
+
         if self.stop_event: self.stop_event.set()
         for t in self.threads: t.join(timeout=2)
         self._release_cameras()

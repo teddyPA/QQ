@@ -1,0 +1,759 @@
+[2026-04-02 10:04:54.867] _reset_cameras: starting
+[2026-04-02 10:04:55.022]   cam 0: Init OK
+[2026-04-02 10:05:28.298] _reset_cameras: starting
+[2026-04-02 10:05:28.472]   cam 0: Init OK
+[2026-04-02 10:05:28.495]   cam 0: DeInit OK
+[2026-04-02 10:05:28.617]   cam 1: Init OK
+[2026-04-02 10:05:28.633]   cam 1: DeInit OK
+[2026-04-02 10:05:28.634] _reset_cameras: done
+[2026-04-02 10:05:28.634] QQ_Cameras v2.7 starting
+[2026-04-02 10:05:29.252] Viewport 1710×1041, preview 665×498
+[2026-04-02 10:06:04.644] Manual camera reset triggered from UI
+[2026-04-02 10:06:04.645] _reset_cameras: starting
+[2026-04-02 10:06:04.793]   cam 0: Init OK
+[2026-04-02 10:06:04.810]   cam 0: DeInit OK
+[2026-04-02 10:06:04.946]   cam 1: Init OK
+[2026-04-02 10:06:04.962]   cam 1: DeInit OK
+[2026-04-02 10:06:04.962] _reset_cameras: done
+[2026-04-02 10:06:04.962] Re-enumerate: 2 camera(s) found
+[2026-04-02 10:06:10.459] _start_focus: 2 camera(s), gain=0.0
+[2026-04-02 10:06:30.328] _reset_cameras: starting
+[2026-04-02 10:06:30.481]   cam 0: Init OK
+[2026-04-02 10:06:30.503]   cam 0: DeInit OK
+[2026-04-02 10:06:30.627]   cam 1: Init OK
+[2026-04-02 10:06:30.643]   cam 1: DeInit OK
+[2026-04-02 10:06:30.643] _reset_cameras: done
+[2026-04-02 10:06:30.644] QQ_Cameras v2.7 starting
+[2026-04-02 10:06:31.244] Viewport 1710×1041, preview 665×498
+[2026-04-02 10:08:06.193] _start_focus: 2 camera(s), gain=0.0
+[2026-04-02 10:08:20.843] _stop_focus: signalling stop_event
+[2026-04-02 10:08:20.908] _stop_focus: calling EndAcquisition
+[2026-04-02 10:08:20.909]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:08:20.909]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:08:20.909] _stop_focus: joining threads
+[2026-04-02 10:08:20.909] _stop_focus: calling DeInit
+[2026-04-02 10:08:20.942] _stop_focus: done
+[2026-04-02 10:08:22.810] _start_focus: 2 camera(s), gain=0.0
+[2026-04-02 10:08:52.626] _start_focus: 2 camera(s), gain=0.0
+[2026-04-02 10:08:56.172] _stop_focus: signalling stop_event
+[2026-04-02 10:08:56.238] _stop_focus: calling EndAcquisition
+[2026-04-02 10:08:56.344]   EndAcquisition error: Spinnaker: Camera is disconnected [-1014]
+[2026-04-02 10:08:56.344] _stop_focus: joining threads
+[2026-04-02 10:08:56.345] _stop_focus: calling DeInit
+[2026-04-02 10:08:56.362] _stop_focus: done
+[2026-04-02 10:08:58.493] Manual camera reset triggered from UI
+[2026-04-02 10:08:58.494] _reset_cameras: starting
+[2026-04-02 10:08:58.630]   cam 0: Init OK
+[2026-04-02 10:08:58.647]   cam 0: DeInit OK
+[2026-04-02 10:08:58.648]   cam 1: Init failed: Spinnaker: Camera has been removed from the list and is no longer valid. [-1002]
+[2026-04-02 10:08:58.648] _reset_cameras: done
+[2026-04-02 10:08:58.655] Re-enumerate: 1 camera(s) found
+[2026-04-02 10:09:21.759] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 10:09:24.705] _stop_focus: signalling stop_event
+[2026-04-02 10:09:24.771] _stop_focus: calling EndAcquisition
+[2026-04-02 10:09:24.882] _stop_focus: joining threads
+[2026-04-02 10:09:24.883] _stop_focus: calling DeInit
+[2026-04-02 10:09:24.905] _stop_focus: done
+[2026-04-02 10:09:26.593] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 10:09:28.327] _stop_focus: signalling stop_event
+[2026-04-02 10:09:28.388] _stop_focus: calling EndAcquisition
+[2026-04-02 10:09:28.500] _stop_focus: joining threads
+[2026-04-02 10:09:28.501] _stop_focus: calling DeInit
+[2026-04-02 10:09:28.517] _stop_focus: done
+[2026-04-02 10:09:37.242] Manual camera reset triggered from UI
+[2026-04-02 10:09:37.243] _reset_cameras: starting
+[2026-04-02 10:09:37.381]   cam 0: Init OK
+[2026-04-02 10:09:37.397]   cam 0: DeInit OK
+[2026-04-02 10:09:37.397] _reset_cameras: done
+[2026-04-02 10:09:37.397] Re-enumerate: 2 camera(s) found
+[2026-04-02 10:09:40.942] _start_focus: 2 camera(s), gain=0.0
+[2026-04-02 10:10:32.709] _stop_focus: signalling stop_event
+[2026-04-02 10:10:32.769] _stop_focus: calling EndAcquisition
+[2026-04-02 10:10:32.770]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:10:32.770]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:10:32.770] _stop_focus: joining threads
+[2026-04-02 10:10:32.771] _stop_focus: calling DeInit
+[2026-04-02 10:10:32.799] _stop_focus: done
+[2026-04-02 10:10:36.743] _start_recording: 2 camera(s), gain=0.0
+[2026-04-02 10:10:42.576] _start_recording: 2 camera(s), gain=0.0
+[2026-04-02 10:11:37.608] QQ_Cameras exited cleanly
+[2026-04-02 10:50:42.487] _reset_cameras: starting
+[2026-04-02 10:50:42.659]   cam 0: Init OK
+[2026-04-02 10:50:42.680]   cam 0: DeInit OK
+[2026-04-02 10:50:42.802]   cam 1: Init OK
+[2026-04-02 10:50:42.818]   cam 1: DeInit OK
+[2026-04-02 10:50:42.820] _reset_cameras: done
+[2026-04-02 10:50:42.820] QQ_Cameras v2.8 starting
+[2026-04-02 10:50:43.849] Viewport 1710×1041, preview 665×498
+[2026-04-02 10:50:53.658] Queued live cam setting: gain_db=1.0  (cameras running: False)
+[2026-04-02 10:50:53.658] Queued live cam setting: gain_db=1.0  (cameras running: False)
+[2026-04-02 10:50:54.149] Queued live cam setting: gain_db=15.0  (cameras running: False)
+[2026-04-02 10:50:54.150] Queued live cam setting: gain_db=15.0  (cameras running: False)
+[2026-04-02 10:51:04.648] _start_focus: 2 camera(s), gain=15.0
+[2026-04-02 10:51:04.649]   cam 0: Init …
+[2026-04-02 10:51:04.809]   cam 0: Init OK — configure …
+[2026-04-02 10:51:04.813]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:51:04.818]   [camera_left] FrameRate OK
+[2026-04-02 10:51:04.821]   [camera_left] ExposureAuto OK
+[2026-04-02 10:51:04.824]   [camera_left] ExposureTime OK
+[2026-04-02 10:51:04.827]   [camera_left] GainAuto OK
+[2026-04-02 10:51:04.830]   [camera_left] Gain OK
+[2026-04-02 10:51:04.836]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:51:04.842]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:51:04.848]   [camera_left] Width=1440 OK
+[2026-04-02 10:51:04.853]   [camera_left] Height=1080 OK
+[2026-04-02 10:51:04.862]   [camera_left] PixelFormat OK
+[2026-04-02 10:51:04.865]   [camera_left] TriggerMode OK
+[2026-04-02 10:51:04.866]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:51:04.867]   cam 0: BeginAcquisition …
+[2026-04-02 10:51:04.879]   cam 0: BeginAcquisition OK
+[2026-04-02 10:51:04.879]   cam 1: Init …
+[2026-04-02 10:51:05.491]   cam 1: Init OK — configure …
+[2026-04-02 10:51:05.494]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 10:51:05.499]   [camera_right] FrameRate OK
+[2026-04-02 10:51:05.502]   [camera_right] ExposureAuto OK
+[2026-04-02 10:51:05.504]   [camera_right] ExposureTime OK
+[2026-04-02 10:51:05.507]   [camera_right] GainAuto OK
+[2026-04-02 10:51:05.510]   [camera_right] Gain OK
+[2026-04-02 10:51:05.516]   [camera_right] OffsetX=0 OK
+[2026-04-02 10:51:05.522]   [camera_right] OffsetY=0 OK
+[2026-04-02 10:51:05.528]   [camera_right] Width=1440 OK
+[2026-04-02 10:51:05.534]   [camera_right] Height=1080 OK
+[2026-04-02 10:51:05.542]   [camera_right] PixelFormat OK
+[2026-04-02 10:51:05.544]   [camera_right] TriggerMode OK
+[2026-04-02 10:51:05.546]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 10:51:05.546]   cam 1: BeginAcquisition …
+[2026-04-02 10:51:05.556]   cam 1: BeginAcquisition OK
+[2026-04-02 10:51:05.770]   [camera_right] focus Spinnaker error: Spinnaker: Stream has been aborted. [-1012]
+[2026-04-02 10:51:06.371]   [camera_left] focus Spinnaker error: Spinnaker: Stream has been aborted. [-1012]
+[2026-04-02 10:51:17.467] _stop_focus: signalling stop_event
+[2026-04-02 10:51:17.529] _stop_focus: calling EndAcquisition
+[2026-04-02 10:51:17.530]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:51:17.530]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:51:17.530] _stop_focus: joining threads
+[2026-04-02 10:51:17.531] _stop_focus: calling DeInit
+[2026-04-02 10:51:17.579] _stop_focus: done
+[2026-04-02 10:51:19.201] _start_focus: 2 camera(s), gain=15.0
+[2026-04-02 10:51:19.202]   cam 0: Init …
+[2026-04-02 10:51:19.347]   cam 0: Init OK — configure …
+[2026-04-02 10:51:19.350]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:51:19.354]   [camera_left] FrameRate OK
+[2026-04-02 10:51:19.357]   [camera_left] ExposureAuto OK
+[2026-04-02 10:51:19.359]   [camera_left] ExposureTime OK
+[2026-04-02 10:51:19.362]   [camera_left] GainAuto OK
+[2026-04-02 10:51:19.365]   [camera_left] Gain OK
+[2026-04-02 10:51:19.370]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:51:19.376]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:51:19.381]   [camera_left] Width=1440 OK
+[2026-04-02 10:51:19.386]   [camera_left] Height=1080 OK
+[2026-04-02 10:51:19.394]   [camera_left] PixelFormat OK
+[2026-04-02 10:51:19.397]   [camera_left] TriggerMode OK
+[2026-04-02 10:51:19.398]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:51:19.398]   cam 0: BeginAcquisition …
+[2026-04-02 10:51:19.406]   cam 0: BeginAcquisition OK
+[2026-04-02 10:51:19.406]   cam 1: Init …
+[2026-04-02 10:51:19.537]   cam 1: Init OK — configure …
+[2026-04-02 10:51:19.540]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 10:51:19.543]   [camera_right] FrameRate OK
+[2026-04-02 10:51:19.547]   [camera_right] ExposureAuto OK
+[2026-04-02 10:51:19.549]   [camera_right] ExposureTime OK
+[2026-04-02 10:51:19.552]   [camera_right] GainAuto OK
+[2026-04-02 10:51:19.555]   [camera_right] Gain OK
+[2026-04-02 10:51:19.560]   [camera_right] OffsetX=0 OK
+[2026-04-02 10:51:19.566]   [camera_right] OffsetY=0 OK
+[2026-04-02 10:51:19.571]   [camera_right] Width=1440 OK
+[2026-04-02 10:51:19.576]   [camera_right] Height=1080 OK
+[2026-04-02 10:51:19.584]   [camera_right] PixelFormat OK
+[2026-04-02 10:51:19.587]   [camera_right] TriggerMode OK
+[2026-04-02 10:51:19.589]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 10:51:19.589]   cam 1: BeginAcquisition …
+[2026-04-02 10:51:19.597]   cam 1: BeginAcquisition OK
+[2026-04-02 10:52:04.274]   [camera_right] focus Spinnaker error: Spinnaker: The input image buffer pool is exhausted.  Please release image(s) back to the pool after use so that new image(s) can be captured. [-1020]
+[2026-04-02 10:52:04.275]   [camera_left] focus Spinnaker error: Spinnaker: The input image buffer pool is exhausted.  Please release image(s) back to the pool after use so that new image(s) can be captured. [-1020]
+[2026-04-02 10:52:28.650] _stop_focus: signalling stop_event
+[2026-04-02 10:52:28.714] _stop_focus: calling EndAcquisition
+[2026-04-02 10:52:28.715]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:52:28.715]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:52:28.715] _stop_focus: joining threads
+[2026-04-02 10:52:28.716] _stop_focus: calling DeInit
+[2026-04-02 10:52:28.762] _stop_focus: done
+[2026-04-02 10:52:32.249] _start_recording: 2 camera(s), gain=15.0
+[2026-04-02 10:52:32.251]   cam 0: Init …
+[2026-04-02 10:52:32.340]   cam 0: Init OK — configure …
+[2026-04-02 10:52:32.343]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:52:32.347]   [camera_left] FrameRate OK
+[2026-04-02 10:52:32.350]   [camera_left] ExposureAuto OK
+[2026-04-02 10:52:32.352]   [camera_left] ExposureTime OK
+[2026-04-02 10:52:32.355]   [camera_left] GainAuto OK
+[2026-04-02 10:52:32.358]   [camera_left] Gain OK
+[2026-04-02 10:52:32.363]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:52:32.369]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:52:32.374]   [camera_left] Width=1440 OK
+[2026-04-02 10:52:32.378]   [camera_left] Height=1080 OK
+[2026-04-02 10:52:32.387]   [camera_left] PixelFormat OK
+[2026-04-02 10:52:32.389]   [camera_left] TriggerMode OK
+[2026-04-02 10:52:32.391]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:52:32.391]   cam 0: BeginAcquisition …
+[2026-04-02 10:52:32.399]   cam 0: BeginAcquisition OK
+[2026-04-02 10:52:32.412]   cam 1: Init …
+[2026-04-02 10:52:32.545]   cam 1: Init OK — configure …
+[2026-04-02 10:52:32.549]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 10:52:32.552]   [camera_right] FrameRate OK
+[2026-04-02 10:52:32.555]   [camera_right] ExposureAuto OK
+[2026-04-02 10:52:32.557]   [camera_right] ExposureTime OK
+[2026-04-02 10:52:32.560]   [camera_right] GainAuto OK
+[2026-04-02 10:52:32.563]   [camera_right] Gain OK
+[2026-04-02 10:52:32.568]   [camera_right] OffsetX=0 OK
+[2026-04-02 10:52:32.573]   [camera_right] OffsetY=0 OK
+[2026-04-02 10:52:32.578]   [camera_right] Width=1440 OK
+[2026-04-02 10:52:32.584]   [camera_right] Height=1080 OK
+[2026-04-02 10:52:32.593]   [camera_right] PixelFormat OK
+[2026-04-02 10:52:32.595]   [camera_right] TriggerMode OK
+[2026-04-02 10:52:32.597]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 10:52:32.597]   cam 1: BeginAcquisition …
+[2026-04-02 10:52:32.606]   cam 1: BeginAcquisition OK
+[2026-04-02 10:52:39.450]   [camera_right] capture Spinnaker error: Spinnaker: The input image buffer pool is exhausted.  Please release image(s) back to the pool after use so that new image(s) can be captured. [-1020]
+[2026-04-02 10:53:09.702]   [camera_left] capture Spinnaker error: Spinnaker: The input image buffer pool is exhausted.  Please release image(s) back to the pool after use so that new image(s) can be captured. [-1020]
+[2026-04-02 10:53:24.300] _stop_recording: signalling stop_event
+[2026-04-02 10:53:24.362] _stop_recording: calling EndAcquisition
+[2026-04-02 10:53:24.365]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:53:24.365]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:53:24.366] _stop_recording: joining threads
+[2026-04-02 10:53:24.366] _stop_recording: calling DeInit
+[2026-04-02 10:53:24.403] _stop_recording: done
+[2026-04-02 10:54:35.188] QQ_Cameras exited cleanly
+[2026-04-02 10:54:40.785] _reset_cameras: starting
+[2026-04-02 10:54:40.933]   cam 0: Init OK
+[2026-04-02 10:54:40.949]   cam 0: DeInit OK
+[2026-04-02 10:54:41.082]   cam 1: Init OK
+[2026-04-02 10:54:41.099]   cam 1: DeInit OK
+[2026-04-02 10:54:41.099] _reset_cameras: done
+[2026-04-02 10:54:41.100] QQ_Cameras v2.8 starting
+[2026-04-02 10:54:41.711] Viewport 1710×1041, preview 665×498
+[2026-04-02 10:54:52.667] _start_recording: 2 camera(s), gain=15.0
+[2026-04-02 10:54:52.668]   cam 0: Init …
+[2026-04-02 10:54:52.816]   cam 0: Init OK — configure …
+[2026-04-02 10:54:52.820]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:54:52.824]   [camera_left] FrameRate OK
+[2026-04-02 10:54:52.827]   [camera_left] ExposureAuto OK
+[2026-04-02 10:54:52.829]   [camera_left] ExposureTime OK
+[2026-04-02 10:54:52.833]   [camera_left] GainAuto OK
+[2026-04-02 10:54:52.837]   [camera_left] Gain OK
+[2026-04-02 10:54:52.842]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:54:52.848]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:54:52.854]   [camera_left] Width=1440 OK
+[2026-04-02 10:54:52.860]   [camera_left] Height=1080 OK
+[2026-04-02 10:54:52.869]   [camera_left] PixelFormat OK
+[2026-04-02 10:54:52.873]   [camera_left] TriggerMode OK
+[2026-04-02 10:54:52.874]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:54:52.874]   cam 0: BeginAcquisition …
+[2026-04-02 10:54:52.884]   cam 0: BeginAcquisition OK
+[2026-04-02 10:54:52.884]   cam 1: Init …
+[2026-04-02 10:55:00.931] _reset_cameras: starting
+[2026-04-02 10:55:01.101]   cam 0: Init OK
+[2026-04-02 10:55:01.111]   cam 0: DeInit OK
+[2026-04-02 10:55:01.256]   cam 1: Init OK
+[2026-04-02 10:55:01.272]   cam 1: DeInit OK
+[2026-04-02 10:55:01.272] _reset_cameras: done
+[2026-04-02 10:55:01.272] QQ_Cameras v2.8 starting
+[2026-04-02 10:55:01.878] Viewport 1710×1041, preview 665×498
+[2026-04-02 10:55:05.750] _start_recording: 2 camera(s), gain=15.0
+[2026-04-02 10:55:05.751]   cam 0: Init …
+[2026-04-02 10:55:05.894]   cam 0: Init OK — configure …
+[2026-04-02 10:55:05.897]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:55:05.902]   [camera_left] FrameRate OK
+[2026-04-02 10:55:05.905]   [camera_left] ExposureAuto OK
+[2026-04-02 10:55:05.907]   [camera_left] ExposureTime OK
+[2026-04-02 10:55:05.911]   [camera_left] GainAuto OK
+[2026-04-02 10:55:05.913]   [camera_left] Gain OK
+[2026-04-02 10:55:05.919]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:55:05.925]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:55:05.931]   [camera_left] Width=1440 OK
+[2026-04-02 10:55:05.936]   [camera_left] Height=1080 OK
+[2026-04-02 10:55:05.945]   [camera_left] PixelFormat OK
+[2026-04-02 10:55:05.947]   [camera_left] TriggerMode OK
+[2026-04-02 10:55:05.949]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:55:05.949]   cam 0: BeginAcquisition …
+[2026-04-02 10:55:05.959]   cam 0: BeginAcquisition OK
+[2026-04-02 10:55:05.959]   cam 1: Init …
+[2026-04-02 10:55:06.097]   cam 1: Init OK — configure …
+[2026-04-02 10:55:06.100]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 10:55:06.105]   [camera_right] FrameRate OK
+[2026-04-02 10:55:06.108]   [camera_right] ExposureAuto OK
+[2026-04-02 10:55:06.110]   [camera_right] ExposureTime OK
+[2026-04-02 10:55:06.113]   [camera_right] GainAuto OK
+[2026-04-02 10:55:06.115]   [camera_right] Gain OK
+[2026-04-02 10:55:06.122]   [camera_right] OffsetX=0 OK
+[2026-04-02 10:55:06.132]   [camera_right] OffsetY=0 OK
+[2026-04-02 10:55:06.142]   [camera_right] Width=1440 OK
+[2026-04-02 10:55:06.150]   [camera_right] Height=1080 OK
+[2026-04-02 10:55:06.159]   [camera_right] PixelFormat OK
+[2026-04-02 10:55:06.162]   [camera_right] TriggerMode OK
+[2026-04-02 10:55:06.163]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 10:55:06.163]   cam 1: BeginAcquisition …
+[2026-04-02 10:55:06.173]   cam 1: BeginAcquisition OK
+[2026-04-02 10:55:17.113] Queued live cam setting: gain_db=0.0  (cameras running: True)
+[2026-04-02 10:55:17.115] Queued live cam setting: gain_db=0.0  (cameras running: True)
+[2026-04-02 10:55:17.360]   [camera_left] capture Spinnaker error: Spinnaker: Stream has been aborted. [-1012]
+[2026-04-02 10:55:17.693]   [camera_right] capture Spinnaker error: Spinnaker: Stream has been aborted. [-1012]
+[2026-04-02 10:55:21.017] _stop_recording: signalling stop_event
+[2026-04-02 10:55:21.083] _stop_recording: calling EndAcquisition
+[2026-04-02 10:55:21.084]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:55:21.084]   EndAcquisition error: Spinnaker: Camera has not started streaming [-1010]
+[2026-04-02 10:55:21.084] _stop_recording: joining threads
+[2026-04-02 10:55:21.084] _stop_recording: calling DeInit
+[2026-04-02 10:55:21.116] _stop_recording: done
+[2026-04-02 10:55:28.185] _start_recording: 2 camera(s), gain=0.0
+[2026-04-02 10:55:28.187]   cam 0: Init …
+[2026-04-02 10:55:28.344]   cam 0: Init OK — configure …
+[2026-04-02 10:55:28.347]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:55:28.351]   [camera_left] FrameRate OK
+[2026-04-02 10:55:28.355]   [camera_left] ExposureAuto OK
+[2026-04-02 10:55:28.357]   [camera_left] ExposureTime OK
+[2026-04-02 10:55:28.360]   [camera_left] GainAuto OK
+[2026-04-02 10:55:28.363]   [camera_left] Gain OK
+[2026-04-02 10:55:28.369]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:55:28.375]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:55:28.378]   [camera_left] Width WARN (Spinnaker: GenICam::AccessException= Node is not writable. : AccessException thrown in node 'Width' while calling 'Width.SetValue()' (file 'IntegerT.h', line 77) [-2006]) — using max
+[2026-04-02 10:55:28.379]   [camera_left] Width max WARN: Spinnaker: GenICam::AccessException= Node is not writable. : AccessException thrown in node 'Width' while calling 'Width.SetValue()' (file 'IntegerT.h', line 77) [-2006]
+[2026-04-02 10:55:28.380]   [camera_left] Height WARN (Spinnaker: GenICam::AccessException= Node is not writable. : AccessException thrown in node 'Height' while calling 'Height.SetValue()' (file 'IntegerT.h', line 77) [-2006]) — using max
+[2026-04-02 10:55:28.381]   [camera_left] Height max WARN: Spinnaker: GenICam::AccessException= Node is not writable. : AccessException thrown in node 'Height' while calling 'Height.SetValue()' (file 'IntegerT.h', line 77) [-2006]
+[2026-04-02 10:55:28.385]   [camera_left] PixelFormat WARN: Spinnaker: GenICam::AccessException= Node is not writable. : AccessException thrown in node 'PixelFormat' while calling 'PixelFormat.SetIntValue()' (file 'EnumerationT.h', line 83) [-2006]
+[2026-04-02 10:55:28.389]   [camera_left] TriggerMode OK
+[2026-04-02 10:55:28.390]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:55:28.390]   cam 0: BeginAcquisition …
+[2026-04-02 10:55:28.403]   cam 0: BeginAcquisition OK
+[2026-04-02 10:55:28.403]   cam 1: Init …
+[2026-04-02 10:55:28.918]   cam 1: Init OK — configure …
+[2026-04-02 10:55:28.922]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 10:55:28.926]   [camera_right] FrameRate OK
+[2026-04-02 10:55:28.929]   [camera_right] ExposureAuto OK
+[2026-04-02 10:55:28.932]   [camera_right] ExposureTime OK
+[2026-04-02 10:55:28.935]   [camera_right] GainAuto OK
+[2026-04-02 10:55:28.939]   [camera_right] Gain OK
+[2026-04-02 10:55:28.945]   [camera_right] OffsetX=0 OK
+[2026-04-02 10:55:28.951]   [camera_right] OffsetY=0 OK
+[2026-04-02 10:55:28.957]   [camera_right] Width=1440 OK
+[2026-04-02 10:55:28.962]   [camera_right] Height=1080 OK
+[2026-04-02 10:55:28.970]   [camera_right] PixelFormat OK
+[2026-04-02 10:55:28.973]   [camera_right] TriggerMode OK
+[2026-04-02 10:55:28.974]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 10:55:28.974]   cam 1: BeginAcquisition …
+[2026-04-02 10:55:29.104] _start_recording ERROR: Spinnaker: Error writing to Device [SN:20243464], at register address: 000C0004. Please try reconnecting the device. [-1008]
+Traceback (most recent call last):
+  File "/Users/teddyshalon/Documents/QuitQuito/Cameras/flir_capture.py", line 1338, in _start_recording
+    cam.BeginAcquisition()
+  File "/Users/teddyshalon/.pyenv/versions/3.10.20/lib/python3.10/site-packages/PySpin.py", line 38361, in BeginAcquisition
+    return _PySpin._SWIG_CamPtr_BeginAcquisition(self)
+_PySpin.SpinnakerException: Spinnaker: Error writing to Device [SN:20243464], at register address: 000C0004. Please try reconnecting the device. [-1008]
+
+[2026-04-02 10:55:34.601] Manual camera reset triggered from UI
+[2026-04-02 10:55:34.601] _reset_cameras: starting
+[2026-04-02 10:55:34.747]   cam 0: Init OK
+[2026-04-02 10:55:34.763]   cam 0: DeInit OK
+[2026-04-02 10:55:34.906]   cam 1: Init OK
+[2026-04-02 10:55:34.923]   cam 1: DeInit OK
+[2026-04-02 10:55:34.923] _reset_cameras: done
+[2026-04-02 10:55:34.923] Re-enumerate: 2 camera(s) found
+[2026-04-02 10:55:41.900] Manual camera reset triggered from UI
+[2026-04-02 10:55:41.900] _reset_cameras: starting
+[2026-04-02 10:55:42.056]   cam 0: Init OK
+[2026-04-02 10:55:42.073]   cam 0: DeInit OK
+[2026-04-02 10:55:42.211]   cam 1: Init OK
+[2026-04-02 10:55:42.228]   cam 1: DeInit OK
+[2026-04-02 10:55:42.228] _reset_cameras: done
+[2026-04-02 10:55:42.228] Re-enumerate: 2 camera(s) found
+[2026-04-02 10:56:33.900] _start_recording: 2 camera(s), gain=0.0
+[2026-04-02 10:56:33.903]   cam 0: Init …
+[2026-04-02 10:56:34.058]   cam 0: Init OK — configure …
+[2026-04-02 10:56:34.061]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:56:34.065]   [camera_left] FrameRate OK
+[2026-04-02 10:56:34.070]   [camera_left] ExposureAuto OK
+[2026-04-02 10:56:34.072]   [camera_left] ExposureTime OK
+[2026-04-02 10:56:34.075]   [camera_left] GainAuto OK
+[2026-04-02 10:56:34.078]   [camera_left] Gain OK
+[2026-04-02 10:56:34.084]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:56:34.090]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:56:34.095]   [camera_left] Width=1440 OK
+[2026-04-02 10:56:34.102]   [camera_left] Height=1080 OK
+[2026-04-02 10:56:34.110]   [camera_left] PixelFormat OK
+[2026-04-02 10:56:34.113]   [camera_left] TriggerMode OK
+[2026-04-02 10:56:34.114]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:56:34.114]   cam 0: BeginAcquisition …
+[2026-04-02 10:56:34.124]   cam 0: BeginAcquisition OK
+[2026-04-02 10:56:34.124]   cam 1: Init …
+[2026-04-02 10:56:34.263]   cam 1: Init OK — configure …
+[2026-04-02 10:56:34.266]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 10:56:34.271]   [camera_right] FrameRate OK
+[2026-04-02 10:56:34.274]   [camera_right] ExposureAuto OK
+[2026-04-02 10:56:34.276]   [camera_right] ExposureTime OK
+[2026-04-02 10:56:34.279]   [camera_right] GainAuto OK
+[2026-04-02 10:56:34.282]   [camera_right] Gain OK
+[2026-04-02 10:56:34.288]   [camera_right] OffsetX=0 OK
+[2026-04-02 10:56:34.294]   [camera_right] OffsetY=0 OK
+[2026-04-02 10:56:34.300]   [camera_right] Width=1440 OK
+[2026-04-02 10:56:34.306]   [camera_right] Height=1080 OK
+[2026-04-02 10:56:34.315]   [camera_right] PixelFormat OK
+[2026-04-02 10:56:34.318]   [camera_right] TriggerMode OK
+[2026-04-02 10:56:34.319]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 10:56:34.319]   cam 1: BeginAcquisition …
+[2026-04-02 10:56:34.329]   cam 1: BeginAcquisition OK
+[2026-04-02 10:56:40.652]   [camera_right] capture Spinnaker error: Spinnaker: The input image buffer pool is exhausted.  Please release image(s) back to the pool after use so that new image(s) can be captured. [-1020]
+[2026-04-02 10:56:48.648]   [camera_left] capture Spinnaker error: Spinnaker: The input image buffer pool is exhausted.  Please release image(s) back to the pool after use so that new image(s) can be captured. [-1020]
+[2026-04-02 10:56:51.034] _stop_recording: signalling stop_event
+[2026-04-02 10:56:51.095] _stop_recording: calling EndAcquisition
+[2026-04-02 10:56:52.778]   EndAcquisition error: Spinnaker: Camera is not initialized [-1002]
+[2026-04-02 10:56:52.778] _stop_recording: joining threads
+[2026-04-02 10:56:52.778] _stop_recording: calling DeInit
+[2026-04-02 10:56:52.790] _stop_recording: done
+[2026-04-02 10:56:57.283] Manual camera reset triggered from UI
+[2026-04-02 10:56:57.284] _reset_cameras: starting
+[2026-04-02 10:56:57.431]   cam 0: Init OK
+[2026-04-02 10:56:57.448]   cam 0: DeInit OK
+[2026-04-02 10:56:57.451]   cam 1: Init failed: Spinnaker: Camera has been removed from the list and is no longer valid. [-1002]
+[2026-04-02 10:56:57.451] _reset_cameras: done
+[2026-04-02 10:56:57.459] Re-enumerate: 1 camera(s) found
+[2026-04-02 10:57:02.849] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 10:57:02.850]   cam 0: Init …
+[2026-04-02 10:57:02.995]   cam 0: Init OK — configure …
+[2026-04-02 10:57:02.998]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:57:03.004]   [camera_left] FrameRate OK
+[2026-04-02 10:57:03.007]   [camera_left] ExposureAuto OK
+[2026-04-02 10:57:03.009]   [camera_left] ExposureTime OK
+[2026-04-02 10:57:03.012]   [camera_left] GainAuto OK
+[2026-04-02 10:57:03.015]   [camera_left] Gain OK
+[2026-04-02 10:57:03.021]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:57:03.027]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:57:03.033]   [camera_left] Width=1440 OK
+[2026-04-02 10:57:03.039]   [camera_left] Height=1080 OK
+[2026-04-02 10:57:03.047]   [camera_left] PixelFormat OK
+[2026-04-02 10:57:03.050]   [camera_left] TriggerMode OK
+[2026-04-02 10:57:03.051]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:57:03.052]   cam 0: BeginAcquisition …
+[2026-04-02 10:57:03.059]   cam 0: BeginAcquisition OK
+[2026-04-02 10:57:10.310] _stop_focus: signalling stop_event
+[2026-04-02 10:57:10.380] _stop_focus: calling EndAcquisition
+[2026-04-02 10:57:10.493] _stop_focus: joining threads
+[2026-04-02 10:57:10.493] _stop_focus: calling DeInit
+[2026-04-02 10:57:10.517] _stop_focus: done
+[2026-04-02 10:57:12.100] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 10:57:12.101]   cam 0: Init …
+[2026-04-02 10:57:12.242]   cam 0: Init OK — configure …
+[2026-04-02 10:57:12.244]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 10:57:12.248]   [camera_left] FrameRate OK
+[2026-04-02 10:57:12.253]   [camera_left] ExposureAuto OK
+[2026-04-02 10:57:12.255]   [camera_left] ExposureTime OK
+[2026-04-02 10:57:12.258]   [camera_left] GainAuto OK
+[2026-04-02 10:57:12.261]   [camera_left] Gain OK
+[2026-04-02 10:57:12.268]   [camera_left] OffsetX=0 OK
+[2026-04-02 10:57:12.273]   [camera_left] OffsetY=0 OK
+[2026-04-02 10:57:12.279]   [camera_left] Width=1440 OK
+[2026-04-02 10:57:12.285]   [camera_left] Height=1080 OK
+[2026-04-02 10:57:12.293]   [camera_left] PixelFormat OK
+[2026-04-02 10:57:12.296]   [camera_left] TriggerMode OK
+[2026-04-02 10:57:12.297]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 10:57:12.297]   cam 0: BeginAcquisition …
+[2026-04-02 10:57:12.306]   cam 0: BeginAcquisition OK
+[2026-04-02 10:57:13.992] _stop_focus: signalling stop_event
+[2026-04-02 10:57:14.057] _stop_focus: calling EndAcquisition
+[2026-04-02 10:57:14.168] _stop_focus: joining threads
+[2026-04-02 10:57:14.168] _stop_focus: calling DeInit
+[2026-04-02 10:57:14.186] _stop_focus: done
+[2026-04-02 10:57:16.534] QQ_Cameras exited cleanly
+[2026-04-02 11:55:06.716] _reset_cameras: starting
+[2026-04-02 11:55:06.875]   cam 0: Init OK
+[2026-04-02 11:55:06.893]   cam 0: DeInit OK
+[2026-04-02 11:55:06.893] _reset_cameras: done
+[2026-04-02 11:55:06.893] QQ_Cameras v2.9 starting
+[2026-04-02 11:55:07.551] Viewport 1710×1041, preview 665×498
+[2026-04-02 11:55:21.598] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 11:55:21.599]   cam 0: Init …
+[2026-04-02 11:55:21.754]   cam 0: Init OK — configure …
+[2026-04-02 11:55:21.758]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:55:21.761]   [camera_left] FrameRate OK
+[2026-04-02 11:55:21.765]   [camera_left] ExposureAuto OK
+[2026-04-02 11:55:21.768]   [camera_left] ExposureTime OK
+[2026-04-02 11:55:21.772]   [camera_left] GainAuto OK
+[2026-04-02 11:55:21.775]   [camera_left] Gain OK
+[2026-04-02 11:55:21.781]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:55:21.787]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:55:21.792]   [camera_left] Width=1440 OK
+[2026-04-02 11:55:21.797]   [camera_left] Height=1080 OK
+[2026-04-02 11:55:21.807]   [camera_left] PixelFormat OK
+[2026-04-02 11:55:21.809]   [camera_left] TriggerMode OK
+[2026-04-02 11:55:21.811]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:55:21.813]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:55:21.813]   cam 0: BeginAcquisition …
+[2026-04-02 11:55:21.823]   cam 0: BeginAcquisition OK
+[2026-04-02 11:55:23.532] _stop_focus: signalling stop_event
+[2026-04-02 11:55:23.596] _stop_focus: calling EndAcquisition
+[2026-04-02 11:55:23.717] _stop_focus: joining threads
+[2026-04-02 11:55:23.717] _stop_focus: calling DeInit
+[2026-04-02 11:55:23.734] _stop_focus: done
+[2026-04-02 11:55:24.332] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 11:55:24.333]   cam 0: Init …
+[2026-04-02 11:55:24.475]   cam 0: Init OK — configure …
+[2026-04-02 11:55:24.478]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:55:24.482]   [camera_left] FrameRate OK
+[2026-04-02 11:55:24.485]   [camera_left] ExposureAuto OK
+[2026-04-02 11:55:24.487]   [camera_left] ExposureTime OK
+[2026-04-02 11:55:24.490]   [camera_left] GainAuto OK
+[2026-04-02 11:55:24.492]   [camera_left] Gain OK
+[2026-04-02 11:55:24.498]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:55:24.504]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:55:24.509]   [camera_left] Width=1440 OK
+[2026-04-02 11:55:24.515]   [camera_left] Height=1080 OK
+[2026-04-02 11:55:24.524]   [camera_left] PixelFormat OK
+[2026-04-02 11:55:24.527]   [camera_left] TriggerMode OK
+[2026-04-02 11:55:24.528]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:55:24.529]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:55:24.529]   cam 0: BeginAcquisition …
+[2026-04-02 11:55:24.538]   cam 0: BeginAcquisition OK
+[2026-04-02 11:55:25.508] _stop_focus: signalling stop_event
+[2026-04-02 11:55:25.572] _stop_focus: calling EndAcquisition
+[2026-04-02 11:55:25.686] _stop_focus: joining threads
+[2026-04-02 11:55:25.687] _stop_focus: calling DeInit
+[2026-04-02 11:55:25.697] _stop_focus: done
+[2026-04-02 11:55:26.983] Manual camera reset triggered from UI
+[2026-04-02 11:55:26.983] _reset_cameras: starting
+[2026-04-02 11:55:27.127]   cam 0: Init OK
+[2026-04-02 11:55:27.143]   cam 0: DeInit OK
+[2026-04-02 11:55:27.143] _reset_cameras: done
+[2026-04-02 11:55:27.144] Re-enumerate: 1 camera(s) found
+[2026-04-02 11:55:32.282] Manual camera reset triggered from UI
+[2026-04-02 11:55:32.283] _reset_cameras: starting
+[2026-04-02 11:55:32.427]   cam 0: Init OK
+[2026-04-02 11:55:32.443]   cam 0: DeInit OK
+[2026-04-02 11:55:32.443] _reset_cameras: done
+[2026-04-02 11:55:32.443] Re-enumerate: 1 camera(s) found
+[2026-04-02 11:55:34.333] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 11:55:34.333]   cam 0: Init …
+[2026-04-02 11:55:34.474]   cam 0: Init OK — configure …
+[2026-04-02 11:55:34.476]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:55:34.480]   [camera_left] FrameRate OK
+[2026-04-02 11:55:34.484]   [camera_left] ExposureAuto OK
+[2026-04-02 11:55:34.486]   [camera_left] ExposureTime OK
+[2026-04-02 11:55:34.489]   [camera_left] GainAuto OK
+[2026-04-02 11:55:34.492]   [camera_left] Gain OK
+[2026-04-02 11:55:34.497]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:55:34.503]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:55:34.508]   [camera_left] Width=1440 OK
+[2026-04-02 11:55:34.514]   [camera_left] Height=1080 OK
+[2026-04-02 11:55:34.523]   [camera_left] PixelFormat OK
+[2026-04-02 11:55:34.525]   [camera_left] TriggerMode OK
+[2026-04-02 11:55:34.527]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:55:34.527]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:55:34.527]   cam 0: BeginAcquisition …
+[2026-04-02 11:55:34.536]   cam 0: BeginAcquisition OK
+[2026-04-02 11:55:38.225] _stop_focus: signalling stop_event
+[2026-04-02 11:55:38.291] _stop_focus: calling EndAcquisition
+[2026-04-02 11:55:38.406] _stop_focus: joining threads
+[2026-04-02 11:55:38.407] _stop_focus: calling DeInit
+[2026-04-02 11:55:38.429] _stop_focus: done
+[2026-04-02 11:55:39.498] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 11:55:39.498]   cam 0: Init …
+[2026-04-02 11:55:39.641]   cam 0: Init OK — configure …
+[2026-04-02 11:55:39.644]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:55:39.649]   [camera_left] FrameRate OK
+[2026-04-02 11:55:39.652]   [camera_left] ExposureAuto OK
+[2026-04-02 11:55:39.654]   [camera_left] ExposureTime OK
+[2026-04-02 11:55:39.658]   [camera_left] GainAuto OK
+[2026-04-02 11:55:39.660]   [camera_left] Gain OK
+[2026-04-02 11:55:39.666]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:55:39.672]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:55:39.677]   [camera_left] Width=1440 OK
+[2026-04-02 11:55:39.683]   [camera_left] Height=1080 OK
+[2026-04-02 11:55:39.691]   [camera_left] PixelFormat OK
+[2026-04-02 11:55:39.693]   [camera_left] TriggerMode OK
+[2026-04-02 11:55:39.695]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:55:39.695]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:55:39.695]   cam 0: BeginAcquisition …
+[2026-04-02 11:55:39.703]   cam 0: BeginAcquisition OK
+[2026-04-02 11:55:40.959] _stop_focus: signalling stop_event
+[2026-04-02 11:55:41.024] _stop_focus: calling EndAcquisition
+[2026-04-02 11:55:41.138] _stop_focus: joining threads
+[2026-04-02 11:55:41.138] _stop_focus: calling DeInit
+[2026-04-02 11:55:41.160] _stop_focus: done
+[2026-04-02 11:55:55.298] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 11:55:55.299]   cam 0: Init …
+[2026-04-02 11:55:55.449]   cam 0: Init OK — configure …
+[2026-04-02 11:55:55.452]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:55:55.456]   [camera_left] FrameRate OK
+[2026-04-02 11:55:55.459]   [camera_left] ExposureAuto OK
+[2026-04-02 11:55:55.461]   [camera_left] ExposureTime OK
+[2026-04-02 11:55:55.464]   [camera_left] GainAuto OK
+[2026-04-02 11:55:55.470]   [camera_left] Gain OK
+[2026-04-02 11:55:55.475]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:55:55.480]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:55:55.486]   [camera_left] Width=1440 OK
+[2026-04-02 11:55:55.491]   [camera_left] Height=1080 OK
+[2026-04-02 11:55:55.499]   [camera_left] PixelFormat OK
+[2026-04-02 11:55:55.502]   [camera_left] TriggerMode OK
+[2026-04-02 11:55:55.504]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:55:55.504]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:55:55.504]   cam 0: BeginAcquisition …
+[2026-04-02 11:55:55.513]   cam 0: BeginAcquisition OK
+[2026-04-02 11:55:57.384] _stop_focus: signalling stop_event
+[2026-04-02 11:55:57.450] _stop_focus: calling EndAcquisition
+[2026-04-02 11:55:57.569] _stop_focus: joining threads
+[2026-04-02 11:55:57.569] _stop_focus: calling DeInit
+[2026-04-02 11:55:57.592] _stop_focus: done
+[2026-04-02 11:56:05.181] _start_focus: 1 camera(s), gain=0.0
+[2026-04-02 11:56:05.182]   cam 0: Init …
+[2026-04-02 11:56:05.330]   cam 0: Init OK — configure …
+[2026-04-02 11:56:05.333]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:56:05.338]   [camera_left] FrameRate OK
+[2026-04-02 11:56:05.341]   [camera_left] ExposureAuto OK
+[2026-04-02 11:56:05.343]   [camera_left] ExposureTime OK
+[2026-04-02 11:56:05.346]   [camera_left] GainAuto OK
+[2026-04-02 11:56:05.349]   [camera_left] Gain OK
+[2026-04-02 11:56:05.355]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:56:05.360]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:56:05.366]   [camera_left] Width=1440 OK
+[2026-04-02 11:56:05.372]   [camera_left] Height=1080 OK
+[2026-04-02 11:56:05.380]   [camera_left] PixelFormat OK
+[2026-04-02 11:56:05.383]   [camera_left] TriggerMode OK
+[2026-04-02 11:56:05.384]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:56:05.384]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:56:05.384]   cam 0: BeginAcquisition …
+[2026-04-02 11:56:05.392]   cam 0: BeginAcquisition OK
+[2026-04-02 11:56:22.932] Window position saved: 1878,62
+[2026-04-02 11:56:23.016] QQ_Cameras exited cleanly
+[2026-04-02 11:56:27.735] _reset_cameras: starting
+[2026-04-02 11:56:27.884]   cam 0: Init OK
+[2026-04-02 11:56:27.900]   cam 0: DeInit OK
+[2026-04-02 11:56:28.038]   cam 1: Init OK
+[2026-04-02 11:56:28.054]   cam 1: DeInit OK
+[2026-04-02 11:56:28.054] _reset_cameras: done
+[2026-04-02 11:56:28.054] QQ_Cameras v2.9 starting
+[2026-04-02 11:56:28.606] Viewport 2560×1378, preview 1090×817
+[2026-04-02 11:56:34.848] Queued live cam setting: gain_db=1.0  (cameras running: False)
+[2026-04-02 11:56:34.849] Queued live cam setting: gain_db=1.0  (cameras running: False)
+[2026-04-02 11:56:35.418] Queued live cam setting: gain_db=10.0  (cameras running: False)
+[2026-04-02 11:56:35.418] Queued live cam setting: gain_db=10.0  (cameras running: False)
+[2026-04-02 11:56:44.247] _start_focus: 2 camera(s), gain=10.0
+[2026-04-02 11:56:44.248]   cam 0: Init …
+[2026-04-02 11:56:44.424]   cam 0: Init OK — configure …
+[2026-04-02 11:56:44.429]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:56:44.436]   [camera_left] FrameRate OK
+[2026-04-02 11:56:44.443]   [camera_left] ExposureAuto OK
+[2026-04-02 11:56:44.447]   [camera_left] ExposureTime OK
+[2026-04-02 11:56:44.451]   [camera_left] GainAuto OK
+[2026-04-02 11:56:44.455]   [camera_left] Gain OK
+[2026-04-02 11:56:44.461]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:56:44.466]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:56:44.472]   [camera_left] Width=1440 OK
+[2026-04-02 11:56:44.477]   [camera_left] Height=1080 OK
+[2026-04-02 11:56:44.488]   [camera_left] PixelFormat OK
+[2026-04-02 11:56:44.492]   [camera_left] TriggerMode OK
+[2026-04-02 11:56:44.493]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:56:44.494]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:56:44.494]   cam 0: BeginAcquisition …
+[2026-04-02 11:56:44.507]   cam 0: BeginAcquisition OK
+[2026-04-02 11:56:44.507]   cam 1: Init …
+[2026-04-02 11:56:44.660]   cam 1: Init OK — configure …
+[2026-04-02 11:56:44.669]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 11:56:44.675]   [camera_right] FrameRate OK
+[2026-04-02 11:56:44.678]   [camera_right] ExposureAuto OK
+[2026-04-02 11:56:44.683]   [camera_right] ExposureTime OK
+[2026-04-02 11:56:44.687]   [camera_right] GainAuto OK
+[2026-04-02 11:56:44.691]   [camera_right] Gain OK
+[2026-04-02 11:56:44.698]   [camera_right] OffsetX=0 OK
+[2026-04-02 11:56:44.704]   [camera_right] OffsetY=0 OK
+[2026-04-02 11:56:44.710]   [camera_right] Width=1440 OK
+[2026-04-02 11:56:44.716]   [camera_right] Height=1080 OK
+[2026-04-02 11:56:44.725]   [camera_right] PixelFormat OK
+[2026-04-02 11:56:44.727]   [camera_right] TriggerMode OK
+[2026-04-02 11:56:44.729]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 11:56:44.729]   [camera_right] StreamBuffer=NewestOnly OK
+[2026-04-02 11:56:44.729]   cam 1: BeginAcquisition …
+[2026-04-02 11:56:44.744]   cam 1: BeginAcquisition OK
+[2026-04-02 11:57:04.717] _stop_focus: signalling stop_event
+[2026-04-02 11:57:04.792] _stop_focus: calling EndAcquisition
+[2026-04-02 11:57:05.034] _stop_focus: joining threads
+[2026-04-02 11:57:05.034] _stop_focus: calling DeInit
+[2026-04-02 11:57:05.068] _stop_focus: done
+[2026-04-02 11:57:06.666] _start_recording: 2 camera(s), gain=10.0
+[2026-04-02 11:57:06.667]   cam 0: Init …
+[2026-04-02 11:57:06.813]   cam 0: Init OK — configure …
+[2026-04-02 11:57:06.816]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:57:06.820]   [camera_left] FrameRate OK
+[2026-04-02 11:57:06.823]   [camera_left] ExposureAuto OK
+[2026-04-02 11:57:06.825]   [camera_left] ExposureTime OK
+[2026-04-02 11:57:06.828]   [camera_left] GainAuto OK
+[2026-04-02 11:57:06.831]   [camera_left] Gain OK
+[2026-04-02 11:57:06.837]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:57:06.842]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:57:06.847]   [camera_left] Width=1440 OK
+[2026-04-02 11:57:06.854]   [camera_left] Height=1080 OK
+[2026-04-02 11:57:06.862]   [camera_left] PixelFormat OK
+[2026-04-02 11:57:06.864]   [camera_left] TriggerMode OK
+[2026-04-02 11:57:06.866]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:57:06.866]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:57:06.866]   cam 0: BeginAcquisition …
+[2026-04-02 11:57:06.874]   cam 0: BeginAcquisition OK
+[2026-04-02 11:57:06.874]   cam 1: Init …
+[2026-04-02 11:57:07.009]   cam 1: Init OK — configure …
+[2026-04-02 11:57:07.012]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 11:57:07.016]   [camera_right] FrameRate OK
+[2026-04-02 11:57:07.020]   [camera_right] ExposureAuto OK
+[2026-04-02 11:57:07.022]   [camera_right] ExposureTime OK
+[2026-04-02 11:57:07.025]   [camera_right] GainAuto OK
+[2026-04-02 11:57:07.028]   [camera_right] Gain OK
+[2026-04-02 11:57:07.033]   [camera_right] OffsetX=0 OK
+[2026-04-02 11:57:07.039]   [camera_right] OffsetY=0 OK
+[2026-04-02 11:57:07.044]   [camera_right] Width=1440 OK
+[2026-04-02 11:57:07.049]   [camera_right] Height=1080 OK
+[2026-04-02 11:57:07.058]   [camera_right] PixelFormat OK
+[2026-04-02 11:57:07.060]   [camera_right] TriggerMode OK
+[2026-04-02 11:57:07.062]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 11:57:07.062]   [camera_right] StreamBuffer=NewestOnly OK
+[2026-04-02 11:57:07.062]   cam 1: BeginAcquisition …
+[2026-04-02 11:57:07.071]   cam 1: BeginAcquisition OK
+[2026-04-02 11:57:36.374] _stop_recording: signalling stop_event
+[2026-04-02 11:57:36.451] _stop_recording: calling EndAcquisition
+[2026-04-02 11:57:36.689] _stop_recording: joining threads
+[2026-04-02 11:57:36.689] _stop_recording: calling DeInit
+[2026-04-02 11:57:36.722] _stop_recording: done
+[2026-04-02 11:58:21.149] _start_recording: 2 camera(s), gain=10.0
+[2026-04-02 11:58:21.153]   cam 0: Init …
+[2026-04-02 11:58:21.300]   cam 0: Init OK — configure …
+[2026-04-02 11:58:21.303]   [camera_left] AcquisitionFrameRateEnable OK
+[2026-04-02 11:58:21.307]   [camera_left] FrameRate OK
+[2026-04-02 11:58:21.310]   [camera_left] ExposureAuto OK
+[2026-04-02 11:58:21.312]   [camera_left] ExposureTime OK
+[2026-04-02 11:58:21.316]   [camera_left] GainAuto OK
+[2026-04-02 11:58:21.319]   [camera_left] Gain OK
+[2026-04-02 11:58:21.324]   [camera_left] OffsetX=0 OK
+[2026-04-02 11:58:21.330]   [camera_left] OffsetY=0 OK
+[2026-04-02 11:58:21.336]   [camera_left] Width=1440 OK
+[2026-04-02 11:58:21.341]   [camera_left] Height=1080 OK
+[2026-04-02 11:58:21.350]   [camera_left] PixelFormat OK
+[2026-04-02 11:58:21.352]   [camera_left] TriggerMode OK
+[2026-04-02 11:58:21.354]   [camera_left] AcquisitionMode=Continuous OK
+[2026-04-02 11:58:21.354]   [camera_left] StreamBuffer=NewestOnly OK
+[2026-04-02 11:58:21.354]   cam 0: BeginAcquisition …
+[2026-04-02 11:58:21.362]   cam 0: BeginAcquisition OK
+[2026-04-02 11:58:21.362]   cam 1: Init …
+[2026-04-02 11:58:21.493]   cam 1: Init OK — configure …
+[2026-04-02 11:58:21.496]   [camera_right] AcquisitionFrameRateEnable OK
+[2026-04-02 11:58:21.501]   [camera_right] FrameRate OK
+[2026-04-02 11:58:21.504]   [camera_right] ExposureAuto OK
+[2026-04-02 11:58:21.506]   [camera_right] ExposureTime OK
+[2026-04-02 11:58:21.510]   [camera_right] GainAuto OK
+[2026-04-02 11:58:21.512]   [camera_right] Gain OK
+[2026-04-02 11:58:21.518]   [camera_right] OffsetX=0 OK
+[2026-04-02 11:58:21.523]   [camera_right] OffsetY=0 OK
+[2026-04-02 11:58:21.529]   [camera_right] Width=1440 OK
+[2026-04-02 11:58:21.534]   [camera_right] Height=1080 OK
+[2026-04-02 11:58:21.543]   [camera_right] PixelFormat OK
+[2026-04-02 11:58:21.545]   [camera_right] TriggerMode OK
+[2026-04-02 11:58:21.546]   [camera_right] AcquisitionMode=Continuous OK
+[2026-04-02 11:58:21.546]   [camera_right] StreamBuffer=NewestOnly OK
+[2026-04-02 11:58:21.546]   cam 1: BeginAcquisition …
+[2026-04-02 11:58:21.555]   cam 1: BeginAcquisition OK
+[2026-04-02 12:00:58.683] _stop_recording: signalling stop_event
+[2026-04-02 12:00:58.757] _stop_recording: calling EndAcquisition
+[2026-04-02 12:00:59.001] _stop_recording: joining threads
+[2026-04-02 12:00:59.001] _stop_recording: calling DeInit
+[2026-04-02 12:00:59.028] _stop_recording: done
